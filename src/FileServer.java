@@ -15,6 +15,8 @@ public class FileServer {
             ServerSocket ss = new ServerSocket(this.port);
             Socket soc = ss.accept();
             System.out.println("Connection established");
+
+            //create new thread to handle each connection somewhere here
         } catch (Exception e) {
             e.printStackTrace();
         }
