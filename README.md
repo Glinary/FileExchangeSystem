@@ -1,16 +1,17 @@
 # File-Exchange-System
 
 ## Installation
-```
 1. Upload the .env file with the port number
 2. Install dependencies using `npm install`
 3. Run the program `npm start`
-```
+
 
 ## Dependencies for reference: 
-- express
-- express-handlebars
+```
+- npm i express
+- npm i express-handlebars
 - npm i body-parser
+```
 
 ## Dev Team
 This project was made by MJ Cabungcal, Erika Culala, and Gleezell Uy
