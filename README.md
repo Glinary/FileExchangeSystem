@@ -2,8 +2,7 @@
 
 ## Installation
 1. Compile Client and Server Java File
-2. Run
-
+`
 
 ## Dev Team
 This project was made by MJ Cabungcal, Erika Culala, and Gleezell Uy
