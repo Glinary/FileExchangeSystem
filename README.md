@@ -6,11 +6,11 @@
 3. Run the program `npm start`
 
 
-## Dependencies for reference: 
+## Dependencies for reference
 ```
-- npm i express
-- npm i express-handlebars
-- npm i body-parser
+npm i express
+npm i express-handlebars
+npm i body-parser
 ```
 
 ## Dev Team
