@@ -5,4 +5,6 @@ const router = Router();
 
 router.get("/", controller.getHome);
 
+router.post("/join", controller.postJoin);
+
 export default router;
