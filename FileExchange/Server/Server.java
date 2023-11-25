@@ -1,3 +1,5 @@
+package Server;
+
 
 
 
@@ -22,9 +24,11 @@ public class Server {
                 Socket socket = serverSocket.accept();  // halted here until client connects and returns socket object to communicate with client
                 System.out.println("A new client has connected!");
 
+                System.out.println("listening..1.");
                 ClientHandler cliHandler =  new ClientHandler(socket);
                 Thread thread = new Thread(cliHandler);
                 thread.start();
+                System.out.println("listening...");
             }
         } catch (IOException e){
 
@@ -44,6 +48,7 @@ public class Server {
 
 
     public static void main(String[] args) throws IOException {
+
         int port = 9000;
 
         // listen to port

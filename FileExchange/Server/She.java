@@ -1,26 +1,47 @@
+package Server;
+
 
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class Client {
+import javax.swing.SwingUtilities;
+
+
+public class She {
 
     private Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String username;
+    private String lastCmd;
 
-    public Client (Socket socket, String username) {
+    // public String getLastCmd() {
+    //     return lastCmd;
+    // }
+
+
+    // public void setLastCmd(String lastCmd) {
+    //     this.lastCmd = lastCmd;
+    // }
+
+
+    public She (Socket socket, String username) {
+
+
         try {
             this.socket = socket;
-            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())); // change later to input from user
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.username = username;
         } catch (IOException e){
             closeEverything(socket, bufferedReader, bufferedWriter);
         }
     }
+
+
+    // ** METHODS
 
     public void sendMessage(){
         try {
@@ -77,12 +98,20 @@ public class Client {
     }
 
     public static void main(String[] args) throws IOException {
+
+        // SwingUtilities.invokeLater(() -> {
+        //     ChatGUI chatGUI = new ChatGUI();
+        //     chatGUI.setVisible(true);
+        // });
+        
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter your username for the group chat");
         String username = scanner.nextLine();
         Socket socket = new Socket("localhost", 9000);
-        Client client = new Client(socket, username);
+        She client = new She(socket, username);
         client.listenForMessage();
         client.sendMessage();
     }
 }
+
+    

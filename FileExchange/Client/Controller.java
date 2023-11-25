@@ -1,0 +1,213 @@
+package Client;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
+public class Controller implements ActionListener, DocumentListener, MessageCallback{
+
+    ChatGUI gui;
+    private Client client;
+
+    public Controller(ChatGUI gui, Client client) {
+        this.gui = gui;
+        this.client = client;
+        
+        this.client.setMessageCallback(this);
+        gui.setActionListener(this);
+        gui.setDocumentListener(this);
+        updateView();
+        
+    }
+
+    public void updateView() {
+        SwingUtilities.invokeLater(() -> gui.getTerminalOut());
+        
+    }
+
+    @Override
+    public void insertUpdate(DocumentEvent e) {
+        // TODO Auto-generated method stub
+
+       
+    }
+
+    @Override
+    public void removeUpdate(DocumentEvent e) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void changedUpdate(DocumentEvent e) {
+        // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        // TODO Auto-generated method stub
+
+         if (e.getActionCommand().equals("Enter")){
+            System.out.println(e.getActionCommand());
+            System.out.println(gui.getUserInput());
+            client.setLastCmd(gui.getUserInput());
+
+
+            // * JOIN Command
+            if (gui.getUserInput().trim().startsWith("/join")){
+                System.out.println("Command Valid"); // checker
+
+                // get port
+                String portCharacters = extractPort(gui.getUserInput());
+                System.out.println("Last port characters: " + portCharacters);
+                int port = Integer.parseInt(portCharacters);
+
+                // get host
+                String hostCharacters =  extractHost(gui.getUserInput());
+                System.out.println("Last host characters: " + hostCharacters);
+
+                // client creds
+                client.setPort(port);
+                client.setHost(hostCharacters);
+
+                
+                // Establish the connection to the server in the background
+                // connect to server
+                try {
+                    client.setSocket(client.getHost(), client.getPort());
+
+                    terminalDisplay();
+
+                    // Listen to Server:
+                    client.listenForMessage();
+
+                    gui.setUserInput("");
+    
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                    System.out.println("Connection unsuccessful. Server is not accepting connections!");
+                    gui.clientTerminalOut("Connection unsuccessful. Server is not accepting connections!");
+
+                }
+            
+            // * Download Command
+            } else if (gui.getUserInput().trim().startsWith("/download")){
+                System.out.println("Command Valid");
+
+                client.sendMessage(gui.getUserInput());
+                client.receiveFile(gui.getUserInput());
+
+                client.listenForMessage();
+                
+                terminalDisplay();
+
+                gui.setUserInput("");
+            } else if (gui.getUserInput().trim().startsWith("/register")){
+                System.out.println("Command Valid");
+
+                System.out.println(gui.getUserInput());
+                client.setName(extractName(gui.getUserInput()));
+                System.out.println(extractName(gui.getUserInput()));
+        
+                
+                if (client.getRegistered() == false){
+                    gui.setTerminalOut( client.getLastCmd(), "~", client.getRegistered());
+                    
+                    if (client.getName() != null){
+                         client.setRegistered(true);
+                         gui.clientTerminalOut(("Registration Successful. Your username is now " + client.getName()));
+                    }
+                } else {
+                    gui.setTerminalOut( client.getLastCmd(), client.getName(), client.getRegistered());
+                }
+
+                gui.setUserInput("");
+            } else {
+                System.out.println("Invalid");
+            }
+        }
+
+    }   
+
+
+    public void terminalDisplay(){
+        if (client.getRegistered() == false){
+                    gui.setTerminalOut( client.getLastCmd(), "~", client.getRegistered());
+        } else {
+            gui.setTerminalOut( client.getLastCmd(), client.getName(), client.getRegistered());
+        }
+}
+
+    @Override
+    public void onMessageReceived(String message) {
+        // Update GUI with the received message
+        SwingUtilities.invokeLater(() -> {
+            gui.clientTerminalOut(message);
+        });
+    }
+
+
+    private static String extractPort(String input) {
+        // Regular expression to match numbers after the last space in the input string
+        String regex = "\\s(\\d+)$"; // Matches one or more digits after the last space
+
+        // Create a Pattern object
+        Pattern pattern = Pattern.compile(regex);
+
+        // Create a Matcher object
+        Matcher matcher = pattern.matcher(input);
+
+        // Find the last match (numbers after the last space)
+        String portExtracted = null;
+        if (matcher.find()) {
+            portExtracted = matcher.group(1); // Group 1 contains the matched digits
+        }
+
+        return portExtracted;
+    }
+
+    private static String extractHost(String input) {
+        // Regular expression to match the string after "/join" and before the second space
+        String regex = "/join\\s(\\S+)"; // Matches "/join", a space, and captures the string before the second space
+
+        // Create a Pattern object
+        Pattern pattern = Pattern.compile(regex);
+
+        // Create a Matcher object
+        Matcher matcher = pattern.matcher(input);
+
+        // Find the match
+        String hostExtracted = null;
+        if (matcher.find()) {
+           hostExtracted = matcher.group(1); // Group 1 contains the captured string
+        }
+
+        return hostExtracted;
+    }
+    private static String extractName(String input) {
+         // Define a regex pattern to match "/register" followed by a space and capture the word
+        // The word is captured in a capturing group (indicated by parentheses)
+        String regex = "/register\\s+(\\w+)";
+        
+        // Create a Pattern object from the regex
+        Pattern pattern = Pattern.compile(regex);
+        
+        // Create a Matcher object for the input sentence
+        Matcher matcher = pattern.matcher(input);
+        
+        // Check if the pattern is found in the input sentence
+        if (matcher.find()) {
+            // Group 1 of the matcher contains the captured word
+            return matcher.group(1);
+        } else {
+            // Return an empty string or handle the case when "/register" is not found
+            return "";
+        }
+    }
+    
+}
