@@ -17,7 +17,6 @@ public class ClientHandler implements Runnable {
     private Socket socket;
     private BufferedReader  bufferedReader;
     private BufferedWriter bufferedWriter;
-    private BufferedWriter bufferedWriterMsg;
     private DataOutputStream dataOutputStream;
     private String clientUsername;
     private Boolean registered; 
@@ -32,9 +31,8 @@ public class ClientHandler implements Runnable {
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            this.bufferedWriterMsg =  new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.registered = false;
-            sendMsg("You are now connected!");
+            sendMsg("Connection to the File Exchange Server is successful!");
             // this.clientUsername =  bufferedReader.readLine();
             clientHandlers.add(this);
             System.out.println("listening.3.");
@@ -50,7 +48,6 @@ public class ClientHandler implements Runnable {
     public void run(){
        // Existing code...
         
-       System.out.println("Waiting for message...");
        String messageFromClient;
        
        
@@ -83,7 +80,7 @@ public class ClientHandler implements Runnable {
     }
 
     public void sendMsg(String msg) throws IOException{
-        System.out.println("The sent msg is: " + msg);
+        System.out.println("The sent msg from server is: " + msg);
 
         bufferedWriter.write("SERVER: " + msg);
         bufferedWriter.newLine();
@@ -91,21 +88,18 @@ public class ClientHandler implements Runnable {
     }
 
     public void registerUser(String name) throws IOException{
-        System.out.println("I entered registration Server");
         name  = extractName("/register", name).substring(0,1).toUpperCase() + extractName("/register", name).substring(1);
-        System.out.println("Reg name: " + name);
+        System.out.println("To register name: " + name);
 
         try {
             if (this.registered == true){
-                System.out.println("register true");
                 dataOutputStream.writeInt(0);
                 sendMsg("You are already registered!");
             } else {
-                System.out.println("register false");
                 this.clientUsername = name;
                 this.registered = true;
                 dataOutputStream.writeInt(1);
-                sendMsg("Registration Successful. Your username now is " + name + "!");
+                sendMsg("Welcome " + name + "!");
             }
         } catch (IOException e){
             e.printStackTrace();
@@ -114,7 +108,6 @@ public class ClientHandler implements Runnable {
     }
 
     public void getUserName () throws IOException {
-        System.out.println("I AM IN GETUSERNAME!");
         System.out.println(this.clientUsername);
         sendMsg(this.clientUsername);
     }
@@ -142,11 +135,10 @@ public class ClientHandler implements Runnable {
                     dataOutputStream.write(buffer, 0, bytesRead);
                 }
     
-                // System.out.println("Server: File \"" + file + "\" sent to client (" + fileSize + " bytes)");
             } else {
                 // File not found, notify the client
                 dataOutputStream.writeLong(-1); // Signal that the file is not found
-                sendMsg("File not found in the server!");
+                sendMsg("Error: File not found in the server!");
             }
     
         } catch (IOException e) {
@@ -156,12 +148,11 @@ public class ClientHandler implements Runnable {
     }
 
     public void ackSuccess(String msg) throws IOException{
-        System.out.println("I entered Succesful Function");
+        System.out.println("I entered successful function");
         String successMessage  = extractSentence("/success", msg);
-        sendMsg("Succesful " + successMessage);
+        sendMsg(successMessage);
     }
 
-  
 
 
     public void broadcastMessage(String messageToSend){

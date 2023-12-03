@@ -138,7 +138,6 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                     }
 
                     // get name from server
-                    System.out.println("Get Name from Server (Controller)");
                     client.sendMessage("/getName");
                     name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
                     System.out.println("Name: " + name);
@@ -152,7 +151,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                 }
                 
             } else {
-                gui.clientTerminalOut("Invalid command. Type /help for valid commands.");
+                gui.clientTerminalOut("Error: Command not found.");
             }
          } 
     }   

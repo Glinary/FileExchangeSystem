@@ -3,12 +3,9 @@ package Client;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.SwingUtilities;
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.SystemMenuBar;
 
 public class Client {
 
@@ -23,9 +20,7 @@ public class Client {
 
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
-
     private DataInputStream dataInputStream;
-
     private Thread listenThread;
 
 
@@ -102,7 +97,7 @@ public class Client {
             bufferedWriter.write(message);
             bufferedWriter.newLine();
             bufferedWriter.flush();
-            System.out.println("Message sent to server! - " + message);
+            System.out.println("Message sent to server: " + message);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -132,7 +127,7 @@ public class Client {
 
         public int receiveRegistrationStatus(){
         try {
-            System.out.println("I entered rec reg client");
+            System.out.println("I entered receive registration - client");
             int regStatus = dataInputStream.readInt();
             System.out.println("reg status client: " + regStatus);
 
@@ -160,7 +155,7 @@ public class Client {
 
             if (fileSize != -1) {
                 // Receive and save the file
-                try (FileOutputStream fileOutputStream = new FileOutputStream("received_" + fpath);
+                try (FileOutputStream fileOutputStream = new FileOutputStream(fpath);
                      BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
 
                     byte[] buffer = new byte[1024];
@@ -173,8 +168,8 @@ public class Client {
                         receivedData += bytesRead;
                         bufferedOutputStream.write(buffer, 0, bytesRead);
                     }
-                    System.out.println("File received: " + fpath);
-                    sendMessage("/success downloading of " + fpath);
+                    System.out.println("File received from server: " + fpath);
+                    sendMessage("/success File received from server: " + fpath);
                 }
             } else {
                 System.out.println("File not found on the server (receiver message)");
@@ -189,10 +184,8 @@ public class Client {
 
     public String receiveUserName(){
         try {
-   
-            System.out.println("Client Name (Client - receiver)");
             String username =  bufferedReader.readLine();
-            System.out.println("Name Returned from Server: " + username);
+            System.out.println("Name returned from server: " + username);
             return username;
         } catch (Exception e) {
             e.printStackTrace();
