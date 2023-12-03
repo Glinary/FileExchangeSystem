@@ -21,6 +21,12 @@ public class ClientHandler implements Runnable {
     private String clientUsername;
     private Boolean registered; 
 
+    
+
+    public String getClientUsername() {
+        return clientUsername;
+    }
+
     public ClientHandler(Socket socket){
 
 
@@ -89,17 +95,34 @@ public class ClientHandler implements Runnable {
 
     public void registerUser(String name) throws IOException{
         name  = extractName("/register", name).substring(0,1).toUpperCase() + extractName("/register", name).substring(1);
+        Boolean unique = true;
         System.out.println("To register name: " + name);
+
+
+        for (int i = 0; i < clientHandlers.size() - 1; i++) {
+            System.out.println("CLIENTS: " + clientHandlers.get(i).getClientUsername());
+        
+            if (clientHandlers.get(i).getClientUsername().equals(name)) {
+                unique = false;
+                System.out.println(unique);
+            }
+        }
 
         try {
             if (this.registered == true){
                 dataOutputStream.writeInt(0);
                 sendMsg("You are already registered!");
             } else {
-                this.clientUsername = name;
-                this.registered = true;
-                dataOutputStream.writeInt(1);
-                sendMsg("Welcome " + name + "!");
+
+                if (unique == true){
+                    this.clientUsername = name;
+                    this.registered = true;
+                    dataOutputStream.writeInt(1);
+                    sendMsg("Welcome " + name + "!");
+                } else {
+                    dataOutputStream.writeInt(0);
+                    sendMsg("Error: Registration failed. Handle or alias already exists");
+                }
             }
         } catch (IOException e){
             e.printStackTrace();
