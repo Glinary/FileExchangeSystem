@@ -75,24 +75,19 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                 client.setHost(hostCharacters);
 
                 
-                // Establish the connection to the server in the background
-                // connect to server
+                lastCmdDisplay();
+
                 try {
                     client.setSocket(client.getHost(), client.getPort());
-
-                    lastCmdDisplay();
-
                     // Listen to Server:
                     client.listenForMessage();
-
-                    gui.setUserInput(""); // clear input box
-    
                 } catch (IOException e1) {
                     // e1.printStackTrace();
-                    // System.out.println("Connection unsuccessful. Server is not accepting connections!");
-                    gui.clientTerminalOut("Connection unsuccessful. Server is not accepting connections!");
-
+                    gui.clientTerminalOut("Unsuccessful connection. Check IP address or port");
                 }
+
+                gui.setUserInput(""); // clear input box
+
             
             // * Download Command
             } else if (gui.getUserInput().trim().startsWith("/download")){

@@ -1,6 +1,7 @@
 package Client;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.regex.Matcher;
@@ -81,12 +82,15 @@ public class Client {
     }
 
 
-    public void setSocket(String ip, int port) throws UnknownHostException, IOException{
-        Socket socket = new Socket(ip, port);
+    public void setSocket(String ip, int port) throws IOException  {
+        Socket socket = new Socket();
+    
+        socket.connect(new InetSocketAddress(ip, port), 1000);
         this.socket = socket;
         this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())); // change later to input from user
         this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.dataInputStream = new DataInputStream(socket.getInputStream());
+        
     }
 
 

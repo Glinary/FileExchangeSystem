@@ -31,7 +31,7 @@ public class Server {
                 System.out.println("listening..4.");
             }
         } catch (IOException e){
-
+            System.out.println("TRY ERROR");
         }
     }
 
