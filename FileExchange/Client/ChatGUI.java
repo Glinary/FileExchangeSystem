@@ -60,7 +60,7 @@ public class ChatGUI extends JFrame {
         // centerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
         leftPanel.setLayout(new BorderLayout());
 
-        JLabel userOut = new JLabel("  ~ Welcome to FileExchange. Type /help for commands");
+        JLabel userOut = new JLabel("  ~ Welcome to FileExchange. Type /? for commands");
         userOut.setForeground(Color.WHITE);
 
 

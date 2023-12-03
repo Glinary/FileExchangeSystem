@@ -150,8 +150,12 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                     gui.setUserInput("");
                 }
                 
-            } else {
+            } else if (gui.getUserInput().trim().startsWith("/?")) {
+                gui.clientTerminalOut("Commands: /?, /join, /register, /leave, /get, /store, /dir");
+                gui.setUserInput("");
+            }else {
                 gui.clientTerminalOut("Error: Command not found.");
+                gui.setUserInput("");
             }
          } 
     }   

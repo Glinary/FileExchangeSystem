@@ -109,7 +109,7 @@ public class ClientHandler implements Runnable {
         }
 
         try {
-            if (this.registered == true){
+            if (this.registered == false){
                 dataOutputStream.writeInt(0);
                 sendMsg("You are already registered!");
             } else {
