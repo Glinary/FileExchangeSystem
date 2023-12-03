@@ -97,22 +97,20 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
             // * Download Command
             } else if (gui.getUserInput().trim().startsWith("/download")){
 
-                client.sendMessage(gui.getUserInput()); // send message to server that download is requested
-                client.receiveFile(gui.getUserInput()); // extract message from server to client
+                lastCmdDisplay();
 
+                client.sendMessage(gui.getUserInput());
+                client.receiveFile(gui.getUserInput());
 
-                client.listenForMessage(); // listen for messages from server response
-
+                client.listenForMessage();
                 // Ensure that the listenForMessage thread completes before moving on
-                try {
-                    client.getListenThread().join();
-                } catch (InterruptedException e2) {
-                    e2.printStackTrace();
-                }
-                
-                lastCmdDisplay(); // displays last command.
+                    try {
+                        client.getListenThread().join();
+                    } catch (InterruptedException e2) {
+                        e2.printStackTrace();
+                    }
 
-                gui.setUserInput(""); // clear input box 
+                gui.setUserInput("");
 
 
             // * Register Command
@@ -163,7 +161,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
     //*  Displays last command of user in Terminal
     public void lastCmdDisplay(){
         if (client.getRegistered() == false){
-                    gui.setTerminalOut( client.getLastCmd(), "", client.getRegistered());
+            gui.setTerminalOut( client.getLastCmd(), "", client.getRegistered());
         } else {
             gui.setTerminalOut( client.getLastCmd(), client.getName(), client.getRegistered());
         }

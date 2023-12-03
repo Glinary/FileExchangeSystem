@@ -17,6 +17,7 @@ public class ClientHandler implements Runnable {
     private Socket socket;
     private BufferedReader  bufferedReader;
     private BufferedWriter bufferedWriter;
+    private BufferedWriter bufferedWriterMsg;
     private DataOutputStream dataOutputStream;
     private String clientUsername;
     private Boolean registered; 
@@ -31,6 +32,7 @@ public class ClientHandler implements Runnable {
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            this.bufferedWriterMsg =  new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.registered = false;
             sendMsg("You are now connected!");
             // this.clientUsername =  bufferedReader.readLine();
@@ -61,15 +63,18 @@ public class ClientHandler implements Runnable {
                    if (messageFromClient.startsWith("/download")) {
                         System.out.println("I received req to download!");
                        handleFileDownload(messageFromClient);
-                   } else if (messageFromClient.startsWith("/register")) {
+                    } else if (messageFromClient.startsWith("/register")) {
                         System.out.println("I received req to register");
                         registerUser(messageFromClient);
-                   } else if (messageFromClient.startsWith("/getName")) {
+                    } else if (messageFromClient.startsWith("/getName")) {
                         System.out.println("I received req for name");
                         getUserName(); 
-                   } else {
+                    } else if (messageFromClient.startsWith("/success")){
+                        System.out.println("I received successful msg");
+                        ackSuccess(messageFromClient);
+                    } else {
                     //    broadcastMessage(messageFromClient);
-                   }
+                    }
                }
            } catch (IOException e) {
                e.printStackTrace();
@@ -77,9 +82,17 @@ public class ClientHandler implements Runnable {
        }
     }
 
+    public void sendMsg(String msg) throws IOException{
+        System.out.println("The sent msg is: " + msg);
+
+        bufferedWriter.write("SERVER: " + msg);
+        bufferedWriter.newLine();
+        bufferedWriter.flush();
+    }
+
     public void registerUser(String name) throws IOException{
         System.out.println("I entered registration Server");
-        name  = extractName(name).substring(0,1).toUpperCase() + extractName(name).substring(1);
+        name  = extractName("/register", name).substring(0,1).toUpperCase() + extractName("/register", name).substring(1);
         System.out.println("Reg name: " + name);
 
         try {
@@ -108,7 +121,7 @@ public class ClientHandler implements Runnable {
 
 
     public void handleFileDownload(String message) {
-        String filename = extractFilename(message);
+        String filename = extractSentence("/download", message);
 
         // Check if the file exists before attempting to send it
         String path = System.getProperty("user.dir");
@@ -130,7 +143,6 @@ public class ClientHandler implements Runnable {
                 }
     
                 // System.out.println("Server: File \"" + file + "\" sent to client (" + fileSize + " bytes)");
-                sendMsg("Successful Download!");
             } else {
                 // File not found, notify the client
                 dataOutputStream.writeLong(-1); // Signal that the file is not found
@@ -143,15 +155,13 @@ public class ClientHandler implements Runnable {
 
     }
 
-  
-
-    public void sendMsg(String msg) throws IOException{
-        System.out.println("The sent msg is: " + msg);
-
-        bufferedWriter.write("SERVER: " + msg);
-        bufferedWriter.newLine();
-        bufferedWriter.flush();
+    public void ackSuccess(String msg) throws IOException{
+        System.out.println("I entered Succesful Function");
+        String successMessage  = extractSentence("/success", msg);
+        sendMsg("Succesful " + successMessage);
     }
+
+  
 
 
     public void broadcastMessage(String messageToSend){
@@ -215,10 +225,10 @@ public class ClientHandler implements Runnable {
     }
 
     // * Extract Name from user input
-    private static String extractName(String input) {
+    private static String extractName(String key, String input) {
         // Define a regex pattern to match "/register" followed by a space and capture the word
        // The word is captured in a capturing group (indicated by parentheses)
-       String regex = "/register\\s+(\\w+)";
+       String regex = key + "\\s+(\\w+)";
        
        // Create a Pattern object from the regex
        Pattern pattern = Pattern.compile(regex);
@@ -235,4 +245,25 @@ public class ClientHandler implements Runnable {
            return "";
        }
    }
+
+   private static String extractSentence(String key, String input) {
+    // Define a regex pattern to match "/success" followed by a space and capture the sentence
+    // The sentence is captured in a capturing group (indicated by parentheses)
+    String regex = key + "\\s+(.*)";
+
+    // Create a Pattern object from the regex
+    Pattern pattern = Pattern.compile(regex);
+
+    // Create a Matcher object for the input sentence
+    Matcher matcher = pattern.matcher(input);
+
+    // Check if the pattern is found in the input sentence
+    if (matcher.find()) {
+        // Group 1 of the matcher contains the captured sentence
+        return matcher.group(1);
+    } else {
+        // Return an empty string or handle the case when "/success" is not found
+        return "";
+    }
+}
 }

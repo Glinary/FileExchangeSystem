@@ -102,7 +102,7 @@ public class Client {
             bufferedWriter.write(message);
             bufferedWriter.newLine();
             bufferedWriter.flush();
-            System.out.println("Message sent to server!");
+            System.out.println("Message sent to server! - " + message);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -149,14 +149,14 @@ public class Client {
     }
 
 
-    public void receiveFile(String filePath) {
-        String fpath =  extractFilename(filePath);
+    public void receiveFile(String filePath)  {
+        String fpath =  extractSentence("/download", filePath);
 
-
+        
         try {
             // Receive the file size from the server
             long fileSize = dataInputStream.readLong();
-            System.out.println("File size: " + fileSize);
+             System.out.println(fileSize);
 
             if (fileSize != -1) {
                 // Receive and save the file
@@ -173,9 +173,8 @@ public class Client {
                         receivedData += bytesRead;
                         bufferedOutputStream.write(buffer, 0, bytesRead);
                     }
-
-                    // sendMessage(fpath + "successfully downloaded as received_" + fpath);
                     System.out.println("File received: " + fpath);
+                    sendMessage("/success downloading of " + fpath);
                 }
             } else {
                 System.out.println("File not found on the server (receiver message)");
@@ -185,8 +184,8 @@ public class Client {
             e.printStackTrace();
         }
     }
-    
 
+    
 
     public String receiveUserName(){
         try {
@@ -280,24 +279,23 @@ public class Client {
     // }
 
 
-     public String extractFilename(String msg){
-         // Define a regex pattern to match "/register" followed by a space and capture the word
-        // The word is captured in a capturing group (indicated by parentheses)
-        String regex = "/download\\s+([\\S]+)";
-
-        
+    private static String extractSentence(String key, String input) {
+        // Define a regex pattern to match "/success" followed by a space and capture the sentence
+        // The sentence is captured in a capturing group (indicated by parentheses)
+        String regex = key + "\\s+(.*)";
+    
         // Create a Pattern object from the regex
         Pattern pattern = Pattern.compile(regex);
-        
+    
         // Create a Matcher object for the input sentence
-        Matcher matcher = pattern.matcher(msg);
-        
+        Matcher matcher = pattern.matcher(input);
+    
         // Check if the pattern is found in the input sentence
         if (matcher.find()) {
-            // Group 1 of the matcher contains the captured word
+            // Group 1 of the matcher contains the captured sentence
             return matcher.group(1);
         } else {
-            // Return an empty string or handle the case when "/register" is not found
+            // Return an empty string or handle the case when "/success" is not found
             return "";
         }
     }
