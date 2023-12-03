@@ -4,10 +4,6 @@ package Server;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Scanner;
-
-import javax.swing.SwingUtilities;
-
 
 public class She {
 
@@ -15,7 +11,6 @@ public class She {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String username;
-    private String lastCmd;
 
     // public String getLastCmd() {
     //     return lastCmd;
@@ -49,10 +44,7 @@ public class She {
             bufferedWriter.newLine();
             bufferedWriter.flush();
 
-            Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()){
-                String messageToSend =  scanner.nextLine();
-                bufferedWriter.write(username + ": " + messageToSend);
                 bufferedWriter.newLine();
                 bufferedWriter.flush();
             }
@@ -104,13 +96,7 @@ public class She {
         //     chatGUI.setVisible(true);
         // });
         
-        Scanner scanner = new Scanner(System.in);
         System.out.println("Enter your username for the group chat");
-        String username = scanner.nextLine();
-        Socket socket = new Socket("localhost", 9000);
-        She client = new She(socket, username);
-        client.listenForMessage();
-        client.sendMessage();
     }
 }
 
