@@ -19,6 +19,7 @@ public class ClientHandler implements Runnable {
     private BufferedWriter bufferedWriter;
     private DataOutputStream dataOutputStream;
     private String clientUsername;
+    private Boolean registered; 
 
     public ClientHandler(Socket socket){
 
@@ -30,6 +31,7 @@ public class ClientHandler implements Runnable {
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            this.registered = false;
             sendMsg("You are now connected!");
             // this.clientUsername =  bufferedReader.readLine();
             clientHandlers.add(this);
@@ -59,6 +61,12 @@ public class ClientHandler implements Runnable {
                    if (messageFromClient.startsWith("/download")) {
                         System.out.println("I received req to download!");
                        handleFileDownload(messageFromClient);
+                   } else if (messageFromClient.startsWith("/register")) {
+                        System.out.println("I received req to register");
+                        registerUser(messageFromClient);
+                   } else if (messageFromClient.startsWith("/getName")) {
+                        System.out.println("I received req for name");
+                        getUserName(); 
                    } else {
                     //    broadcastMessage(messageFromClient);
                    }
@@ -67,6 +75,35 @@ public class ClientHandler implements Runnable {
                e.printStackTrace();
            }
        }
+    }
+
+    public void registerUser(String name) throws IOException{
+        System.out.println("I entered registration Server");
+        name  = extractName(name).substring(0,1).toUpperCase() + extractName(name).substring(1);
+        System.out.println("Reg name: " + name);
+
+        try {
+            if (this.registered == true){
+                System.out.println("register true");
+                dataOutputStream.writeInt(0);
+                sendMsg("You are already registered!");
+            } else {
+                System.out.println("register false");
+                this.clientUsername = name;
+                this.registered = true;
+                dataOutputStream.writeInt(1);
+                sendMsg("Registration Successful. Your username now is " + name + "!");
+            }
+        } catch (IOException e){
+            e.printStackTrace();
+            sendMsg("Error in registratoin.");
+        }
+    }
+
+    public void getUserName () throws IOException {
+        System.out.println("I AM IN GETUSERNAME!");
+        System.out.println(this.clientUsername);
+        sendMsg(this.clientUsername);
     }
 
 
@@ -109,6 +146,8 @@ public class ClientHandler implements Runnable {
   
 
     public void sendMsg(String msg) throws IOException{
+        System.out.println("The sent msg is: " + msg);
+
         bufferedWriter.write("SERVER: " + msg);
         bufferedWriter.newLine();
         bufferedWriter.flush();
@@ -174,4 +213,26 @@ public class ClientHandler implements Runnable {
             return "";
         }
     }
+
+    // * Extract Name from user input
+    private static String extractName(String input) {
+        // Define a regex pattern to match "/register" followed by a space and capture the word
+       // The word is captured in a capturing group (indicated by parentheses)
+       String regex = "/register\\s+(\\w+)";
+       
+       // Create a Pattern object from the regex
+       Pattern pattern = Pattern.compile(regex);
+       
+       // Create a Matcher object for the input sentence
+       Matcher matcher = pattern.matcher(input);
+       
+       // Check if the pattern is found in the input sentence
+       if (matcher.find()) {
+           // Group 1 of the matcher contains the captured word
+           return matcher.group(1);
+       } else {
+           // Return an empty string or handle the case when "/register" is not found
+           return "";
+       }
+   }
 }

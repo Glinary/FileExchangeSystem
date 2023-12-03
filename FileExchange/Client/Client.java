@@ -10,22 +10,23 @@ import java.util.regex.Pattern;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicInternalFrameTitlePane.SystemMenuBar;
 
-
 public class Client {
 
 
     private Socket socket;
-    private String name;
     private String lastCmd;
     private String host;
+    private String name;
     private int port;
-    private Boolean joined = false;
+    // private Boolean joined = false;
     private Boolean registered = false;
 
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
 
     private DataInputStream dataInputStream;
+
+    private Thread listenThread;
 
 
     public Boolean getRegistered() {
@@ -34,13 +35,18 @@ public class Client {
     public void setRegistered(Boolean registered) {
         this.registered = registered;
     }
+
+    public Thread getListenThread() {
+        return listenThread;
+    }
     
-    public Boolean getJoin() {
-        return joined;
-    }
-    public void setJoin(Boolean join) {
-        this.joined = join;
-    }
+    // public Boolean getJoin() {
+    //     return joined;
+    // }
+    // public void setJoin(Boolean join) {
+    //     this.joined = join;
+    // }
+
     public String getHost() {
         return host;
     }
@@ -57,14 +63,6 @@ public class Client {
         return socket;
     }
 
-    public void setSocket(String ip, int port) throws UnknownHostException, IOException{
-        Socket socket = new Socket(ip, port);
-        this.socket = socket;
-
-        this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())); // change later to input from user
-        this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        this.dataInputStream = new DataInputStream(socket.getInputStream());
-    }
     public String getName() {
         return name;
     }
@@ -87,7 +85,121 @@ public class Client {
         this.messageCallback = callback;
     }
 
+
+    public void setSocket(String ip, int port) throws UnknownHostException, IOException{
+        Socket socket = new Socket(ip, port);
+        this.socket = socket;
+        this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())); // change later to input from user
+        this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        this.dataInputStream = new DataInputStream(socket.getInputStream());
+    }
+
+
+    // ** Send Message to the server
+    public void sendMessage(String message){
+        try {
+            
+            bufferedWriter.write(message);
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+            System.out.println("Message sent to server!");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void listenForMessage(){
+        listenThread = new Thread(new Runnable(){
+            @Override
+            public void run(){
+                
+                try {
+
+                    String message = bufferedReader.readLine();
+
+                    if (messageCallback != null) {
+                        messageCallback.onMessageReceived(message);
+                    }        
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }); 
+        listenThread.start();
+    }
+
+
+        public int receiveRegistrationStatus(){
+        try {
+            System.out.println("I entered rec reg client");
+            int regStatus = dataInputStream.readInt();
+            System.out.println("reg status client: " + regStatus);
+
+            if (regStatus == 1){
+                return 1;
+            }
+            else if (regStatus == 0){
+                return 0;
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+
+    public void receiveFile(String filePath) {
+        String fpath =  extractFilename(filePath);
+
+
+        try {
+            // Receive the file size from the server
+            long fileSize = dataInputStream.readLong();
+            System.out.println("File size: " + fileSize);
+
+            if (fileSize != -1) {
+                // Receive and save the file
+                try (FileOutputStream fileOutputStream = new FileOutputStream("received_" + fpath);
+                     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    long receivedData = 0;
+
+                    // Receive the file content in chunks
+                    while (receivedData < fileSize) {
+                        bytesRead = dataInputStream.read(buffer);
+                        receivedData += bytesRead;
+                        bufferedOutputStream.write(buffer, 0, bytesRead);
+                    }
+
+                    // sendMessage(fpath + "successfully downloaded as received_" + fpath);
+                    System.out.println("File received: " + fpath);
+                }
+            } else {
+                System.out.println("File not found on the server (receiver message)");
+            }    
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     
+
+
+    public String receiveUserName(){
+        try {
+   
+            System.out.println("Client Name (Client - receiver)");
+            String username =  bufferedReader.readLine();
+            System.out.println("Name Returned from Server: " + username);
+            return username;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 
     // public void newSocket(String ip, int port) throws UnknownHostException, IOException{
@@ -130,72 +242,6 @@ public class Client {
     //     }
     // }
 
-    public void sendMessage(String message){
-        try {
-            
-            bufferedWriter.write(message);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-            System.out.println("Message sent!");
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void receiveFile(String filePath) {
-        String fpath =  extractFilename(filePath);
-        try {
-            // Receive the file size from the server
-            long fileSize = dataInputStream.readLong();
-
-            if (fileSize != -1) {
-                // Receive and save the file
-                try (FileOutputStream fileOutputStream = new FileOutputStream("received_" + fpath);
-                     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
-
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-                    long receivedData = 0;
-
-                    // Receive the file content in chunks
-                    while (receivedData < fileSize) {
-                        bytesRead = dataInputStream.read(buffer);
-                        receivedData += bytesRead;
-                        bufferedOutputStream.write(buffer, 0, bytesRead);
-                    }
-
-                    sendMessage(fpath + "successfully downloaded as received_" + fpath);
-                    System.out.println("File received: " + fpath);
-                }
-            } else {
-                System.out.println("File not found on the server (receiver message)");
-            }    
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public void listenForMessage(){
-        new Thread(new Runnable(){
-            @Override
-            public void run(){
-                
-                try {
-
-                    String message = bufferedReader.readLine();
-
-                    if (messageCallback != null) {
-                        messageCallback.onMessageReceived(message);
-                    }        
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
 
 
     // public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter){

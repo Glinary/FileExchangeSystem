@@ -53,14 +53,13 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
         // TODO Auto-generated method stub
 
          if (e.getActionCommand().equals("Enter")){
-            System.out.println(e.getActionCommand());
-            System.out.println(gui.getUserInput());
+            // System.out.println(e.getActionCommand());
+            // System.out.println(gui.getUserInput());
             client.setLastCmd(gui.getUserInput());
 
 
             // * JOIN Command
             if (gui.getUserInput().trim().startsWith("/join")){
-                System.out.println("Command Valid"); // checker
 
                 // get port
                 String portCharacters = extractPort(gui.getUserInput());
@@ -81,68 +80,107 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                 try {
                     client.setSocket(client.getHost(), client.getPort());
 
-                    terminalDisplay();
+                    lastCmdDisplay();
 
                     // Listen to Server:
                     client.listenForMessage();
 
-                    gui.setUserInput("");
+                    gui.setUserInput(""); // clear input box
     
                 } catch (IOException e1) {
-                    e1.printStackTrace();
-                    System.out.println("Connection unsuccessful. Server is not accepting connections!");
+                    // e1.printStackTrace();
+                    // System.out.println("Connection unsuccessful. Server is not accepting connections!");
                     gui.clientTerminalOut("Connection unsuccessful. Server is not accepting connections!");
 
                 }
             
             // * Download Command
             } else if (gui.getUserInput().trim().startsWith("/download")){
-                System.out.println("Command Valid");
 
-                client.sendMessage(gui.getUserInput());
-                client.receiveFile(gui.getUserInput());
+                client.sendMessage(gui.getUserInput()); // send message to server that download is requested
+                client.receiveFile(gui.getUserInput()); // extract message from server to client
 
-                client.listenForMessage();
-                
-                terminalDisplay();
 
-                gui.setUserInput("");
-            } else if (gui.getUserInput().trim().startsWith("/register")){
-                System.out.println("Command Valid");
+                client.listenForMessage(); // listen for messages from server response
 
-                System.out.println(gui.getUserInput());
-                client.setName(extractName(gui.getUserInput()));
-                System.out.println(extractName(gui.getUserInput()));
-        
-                
-                if (client.getRegistered() == false){
-                    gui.setTerminalOut( client.getLastCmd(), "~", client.getRegistered());
-                    
-                    if (client.getName() != null){
-                         client.setRegistered(true);
-                         gui.clientTerminalOut(("Registration Successful. Your username is now " + client.getName()));
-                    }
-                } else {
-                    gui.setTerminalOut( client.getLastCmd(), client.getName(), client.getRegistered());
+                // Ensure that the listenForMessage thread completes before moving on
+                try {
+                    client.getListenThread().join();
+                } catch (InterruptedException e2) {
+                    e2.printStackTrace();
                 }
+                
+                lastCmdDisplay(); // displays last command.
 
-                gui.setUserInput("");
+                gui.setUserInput(""); // clear input box 
+
+
+            // * Register Command
+            } else if (gui.getUserInput().trim().startsWith("/register")){
+                int registration = 0; 
+                String name = null;
+
+                // send message /register to server using client
+                client.sendMessage(gui.getUserInput());
+                registration = client.receiveRegistrationStatus();
+            
+
+                 // display last command (differs on other commands because name must not show yet)
+                if (registration == 1){
+                    gui.clientTerminalOut(client.getLastCmd()); // display last command without registered name
+                    gui.setUserInput("");
+
+                    client.listenForMessage();
+
+                    // Ensure that the listenForMessage thread completes before moving on
+                    try {
+                        client.getListenThread().join();
+                    } catch (InterruptedException e2) {
+                        e2.printStackTrace();
+                    }
+
+                    // get name from server
+                    System.out.println("Get Name from Server (Controller)");
+                    client.sendMessage("/getName");
+                    name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
+                    System.out.println("Name: " + name);
+            
+                    setRegistration(registration, name);
+
+                // already registered
+                } else {
+                    client.listenForMessage();
+                    gui.setUserInput("");
+                }
+                
             } else {
-                System.out.println("Invalid");
+                gui.clientTerminalOut("Invalid command. Type /help for valid commands.");
             }
-        }
-
+         } 
     }   
 
 
-    public void terminalDisplay(){
+    //*  Displays last command of user in Terminal
+    public void lastCmdDisplay(){
         if (client.getRegistered() == false){
-                    gui.setTerminalOut( client.getLastCmd(), "~", client.getRegistered());
+                    gui.setTerminalOut( client.getLastCmd(), "", client.getRegistered());
         } else {
             gui.setTerminalOut( client.getLastCmd(), client.getName(), client.getRegistered());
         }
-}
+    }   
 
+    // * Register client name in client
+    public void setRegistration(int status, String name){
+        System.out.println("Set Registration (Controller)");
+        if (status == 1){
+            client.setRegistered(true);
+            client.setName(name);
+        } else if (status == 0){
+            client.setRegistered(false);
+        }
+    }
+
+    //* Displays server response on gui.
     @Override
     public void onMessageReceived(String message) {
         // Update GUI with the received message
@@ -152,6 +190,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
     }
 
 
+    //* Extract Port from user input
     private static String extractPort(String input) {
         // Regular expression to match numbers after the last space in the input string
         String regex = "\\s(\\d+)$"; // Matches one or more digits after the last space
@@ -171,6 +210,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
         return portExtracted;
     }
 
+    // * Extract Host from user input
     private static String extractHost(String input) {
         // Regular expression to match the string after "/join" and before the second space
         String regex = "/join\\s(\\S+)"; // Matches "/join", a space, and captures the string before the second space
@@ -189,25 +229,27 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
 
         return hostExtracted;
     }
-    private static String extractName(String input) {
-         // Define a regex pattern to match "/register" followed by a space and capture the word
-        // The word is captured in a capturing group (indicated by parentheses)
-        String regex = "/register\\s+(\\w+)";
-        
-        // Create a Pattern object from the regex
-        Pattern pattern = Pattern.compile(regex);
-        
-        // Create a Matcher object for the input sentence
-        Matcher matcher = pattern.matcher(input);
-        
-        // Check if the pattern is found in the input sentence
-        if (matcher.find()) {
-            // Group 1 of the matcher contains the captured word
-            return matcher.group(1);
-        } else {
-            // Return an empty string or handle the case when "/register" is not found
-            return "";
-        }
-    }
+
+     // * Extract Name from user input
+     private static String extractName(String key, String input) {
+        // Define a regex pattern to match "/register" followed by a space and capture the word
+       // The word is captured in a capturing group (indicated by parentheses)
+       String regex = key + "\\s+(\\w+)";
+       
+       // Create a Pattern object from the regex
+       Pattern pattern = Pattern.compile(regex);
+       
+       // Create a Matcher object for the input sentence
+       Matcher matcher = pattern.matcher(input);
+       
+       // Check if the pattern is found in the input sentence
+       if (matcher.find()) {
+           // Group 1 of the matcher contains the captured word
+           return matcher.group(1);
+       } else {
+           // Return an empty string or handle the case when "/register" is not found
+           return "";
+       }
+   }
     
 }

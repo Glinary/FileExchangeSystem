@@ -130,9 +130,9 @@ public class ChatGUI extends JFrame {
     public void setTerminalOut(String msg, String clientName, Boolean reg){
         terminalOut.setForeground(Color.WHITE);  // Set color for the entire JTextArea
         if (reg == true){
-            terminalOut.append(clientName + ": " + msg + "\n\n");
+            terminalOut.append("~ "+ clientName + ": " + msg + "\n\n");
         } else {
-            terminalOut.append(clientName + " " + msg + "\n\n");
+            terminalOut.append("~" + clientName + " " + msg + "\n\n");
         }
 
         // Ensure the scroll pane scrolls to the bottom
