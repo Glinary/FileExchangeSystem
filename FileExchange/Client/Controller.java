@@ -169,7 +169,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
         }
     }   
 
-    // * Register client name in client
+    // * Register client registration in client
     public void setRegistration(int status, String name){
         System.out.println("Set Registration (Controller)");
         if (status == 1){
