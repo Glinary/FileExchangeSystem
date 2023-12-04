@@ -149,8 +149,11 @@ public class Client {
 
     public void receiveFile(String filePath)  {
         String fpath =  extractSentence("/download", filePath);
+        String dirPath = System.getProperty("user.dir");
+        String finalPath =  dirPath + "/Client Download/" + fpath;
+        System.out.println("Dir Path: " + dirPath);
+        System.out.println("FIn Path: " + finalPath);
 
-        
         try {
             // Receive the file size from the server
             long fileSize = dataInputStream.readLong();
@@ -158,7 +161,7 @@ public class Client {
 
             if (fileSize != -1) {
                 // Receive and save the file
-                try (FileOutputStream fileOutputStream = new FileOutputStream(fpath);
+                try (FileOutputStream fileOutputStream = new FileOutputStream(finalPath);
                      BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
 
                     byte[] buffer = new byte[1024];
