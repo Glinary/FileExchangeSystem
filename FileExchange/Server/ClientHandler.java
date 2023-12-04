@@ -4,6 +4,7 @@ package Server;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,7 +59,7 @@ public class ClientHandler implements Runnable {
        String messageFromClient;
        
        
-       while (socket.isConnected()) {
+       while (!socket.isClosed()) { // socket.isConnected()
            try {
                messageFromClient = bufferedReader.readLine();
                System.out.println("Received message from client: " + messageFromClient + "/n");
@@ -66,7 +67,7 @@ public class ClientHandler implements Runnable {
                if (messageFromClient != null) {
                    if (messageFromClient.startsWith("/download")) {
                         System.out.println("I received req to download!");
-                       handleFileDownload(messageFromClient);
+                        handleFileDownload(messageFromClient);
                     } else if (messageFromClient.startsWith("/register")) {
                         System.out.println("I received req to register");
                         registerUser(messageFromClient);
@@ -79,10 +80,17 @@ public class ClientHandler implements Runnable {
                     } else if (messageFromClient.startsWith("/success")){
                         System.out.println("I received successful msg");
                         ackSuccess(messageFromClient);
+                    } else if (messageFromClient.startsWith("/leave")){
+                        System.out.println("I received disconnection req");
+                        disconnectClient();
                     } else {
                     //    broadcastMessage(messageFromClient);
                     }
                }
+           } catch (SocketException e) {
+                // Handle SocketException (connection closed)
+                System.out.println("Client disconnected: " + socket.getInetAddress());
+                disconnectClient();
            } catch (IOException e) {
                e.printStackTrace();
            }
@@ -133,7 +141,7 @@ public class ClientHandler implements Runnable {
                 }
             } catch (IOException e){
                 e.printStackTrace();
-                sendMsg("Error in registratoin.");
+                sendMsg("Error in registration.");
             }
 
         } else {
@@ -238,7 +246,6 @@ public class ClientHandler implements Runnable {
     }
 
 
-
     public void broadcastMessage(String messageToSend){
         for (ClientHandler clientHandler: clientHandlers ){
             try {
@@ -252,6 +259,21 @@ public class ClientHandler implements Runnable {
                 closeEverything(socket, bufferedReader, bufferedWriter);
             }
         }
+    }
+
+    public void disconnectClient(){
+        try {
+            System.out.println("Someone is trying to leave.");
+            sendMsg("Connection closed. Thank you!");
+            clientHandlers.remove(this);
+            socket.close();
+            
+        } catch (SocketException e) {
+            System.out.println("Someone left.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     // user disconnected

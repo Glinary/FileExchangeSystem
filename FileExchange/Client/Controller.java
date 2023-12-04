@@ -9,6 +9,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 public class Controller implements ActionListener, DocumentListener, MessageCallback{
 
     ChatGUI gui;
@@ -23,6 +26,12 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
         gui.setDocumentListener(this);
         updateView();
         
+        gui.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                handleWindowClosing(); // Terminate Connection to Server if GUI got closed
+            }
+        });
     }
 
     public void updateView() {
@@ -188,6 +197,23 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                 gui.clientTerminalOut("Commands: /?, /join, /register, /leave, /get, /store, /dir");
                 gui.setUserInput("");
 
+            } else if (gui.getUserInput().trim().startsWith("/leave")){
+                lastCmdDisplay();
+
+                if(validJoin) {
+                    client.sendMessage(gui.getUserInput());
+                    client.leave();
+                    client.setJoined(false);
+                    client.setRegistered(false);
+                    gui.clientTerminalOut("Connection is closed. Thank you!");
+
+
+                } else {
+                    gui.clientTerminalOut("Error: Disconnection failed. Please connect to the server first.");
+                }
+
+                gui.setUserInput("");
+                
             } else {
                 lastCmdDisplay();
                 gui.clientTerminalOut("Error: Command not found.");
@@ -287,5 +313,14 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
            return "";
        }
    }
+    private void handleWindowClosing() {
+        if (client.getJoined()) {
+            // Send "/leave" command if the client is joined
+            client.sendMessage("/leave");
+            client.leave();
+            client.setJoined(false);
+            client.setRegistered(false);
+        }
+    }
     
 }

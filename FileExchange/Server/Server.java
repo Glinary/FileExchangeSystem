@@ -20,7 +20,7 @@ public class Server {
         try {
 
             while(!serverSocket.isClosed()){
-
+                System.out.println("Hi there");
                 Socket socket = serverSocket.accept();  // halted here until client connects and returns socket object to communicate with client
                 System.out.println("A new client has connected!");
 

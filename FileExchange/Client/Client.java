@@ -246,6 +246,24 @@ public class Client {
         } 
     }
 
+    public void leave() {
+        try {
+            socket.close();
+            bufferedReader.close();
+            bufferedWriter.close();
+            dataInputStream.close();
+            dataOutputStream.close();
+
+
+            joined = false;
+            registered = false;
+
+            System.out.println("You have left the server");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void ackServer(String msg) throws IOException{
         System.out.println("I entered successful function");
         String serverMessage  = extractSentence("SERVER: /serverRes", msg);
