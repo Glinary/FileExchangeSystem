@@ -54,38 +54,47 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
          if (e.getActionCommand().equals("Enter")){
             // System.out.println(e.getActionCommand());
             // System.out.println(gui.getUserInput());
+
             client.setLastCmd(gui.getUserInput());
+            Boolean validJoin = client.getJoined();
+            Boolean validRegister = client.getRegistered();
 
 
             // * JOIN Command
             if (gui.getUserInput().trim().startsWith("/join")){
 
-                // get port
-                String portCharacters = extractPort(gui.getUserInput());
-                System.out.println("Last port characters: " + portCharacters);
-                int port = Integer.parseInt(portCharacters);
-
-                // get host
-                String hostCharacters =  extractHost(gui.getUserInput());
-                System.out.println("Last host characters: " + hostCharacters);
-
-                // client creds
-                client.setPort(port);
-                client.setHost(hostCharacters);
-
-                
                 lastCmdDisplay();
 
-                try {
-                    client.setSocket(client.getHost(), client.getPort());
-                    // Listen to Server:
-                    client.listenForMessage();
-                } catch (IOException e1) {
-                    // e1.printStackTrace();
-                    gui.clientTerminalOut("Unsuccessful connection. Check IP address or port");
-                }
+                if (!validJoin){
+                    // get port
+                    String portCharacters = extractPort(gui.getUserInput());
+                    System.out.println("Last port characters: " + portCharacters);
+                    int port = Integer.parseInt(portCharacters);
 
-                gui.setUserInput(""); // clear input box
+                    // get host
+                    String hostCharacters =  extractHost(gui.getUserInput());
+                    System.out.println("Last host characters: " + hostCharacters);
+
+                    // client creds
+                    client.setPort(port);
+                    client.setHost(hostCharacters);
+
+                    
+                    try {
+                        client.setSocket(client.getHost(), client.getPort());
+                        // Listen to Server:
+                        client.listenForMessage();
+                        gui.setUserInput(""); // clear input box
+                    } catch (IOException e1) {
+                        // e1.printStackTrace();
+                        gui.clientTerminalOut("Error: Unsuccessful connection. Check IP address or port");
+                        gui.setUserInput("");
+                        // gui.clientTerminalOut(client.getJoin().toString());  // checker
+                    }
+                } else {
+                    gui.clientTerminalOut("Error: You are already joined to the server.");
+                    gui.setUserInput("");
+                }
 
             
             // * Download Command
@@ -93,67 +102,83 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
 
                 lastCmdDisplay();
 
-                client.sendMessage(gui.getUserInput());
-                client.receiveFile(gui.getUserInput());
+                if (validJoin && validRegister){
 
-                client.listenForMessage();
-                // Ensure that the listenForMessage thread completes before moving on
-                    try {
-                        client.getListenThread().join();
-                    } catch (InterruptedException e2) {
-                        e2.printStackTrace();
-                    }
+                    client.sendMessage(gui.getUserInput());
+                    client.receiveFile(gui.getUserInput());
+
+                    client.listenForMessage();
+                    // Ensure that the listenForMessage thread completes before moving on
+                        try {
+                            client.getListenThread().join();
+                        } catch (InterruptedException e2) {
+                            e2.printStackTrace();
+                        }
+                } else {
+                    gui.clientTerminalOut("Error: Invalid command. Make sure you are joined or registered.");
+                }
 
                 gui.setUserInput("");
 
 
             // * Register Command
             } else if (gui.getUserInput().trim().startsWith("/register")){
-                int registration = 0; 
-                String name = null;
 
-                // send message /register to server using client
-                client.sendMessage(gui.getUserInput());
-                registration = client.receiveRegistrationStatus();
-            
+                if (validJoin) {
+                    int registration = 0; 
+                    String name = null;
 
-                 // display last command (differs on other commands because name must not show yet)
-                if (registration == 1){
-                    gui.clientTerminalOut(client.getLastCmd()); // display last command without registered name
-                    gui.setUserInput("");
+                    // send message /register to server using client
+                    client.sendMessage(gui.getUserInput());
+                    registration = client.receiveRegistrationStatus();
+                
 
-                    client.listenForMessage();
+                    // display last command (differs on other commands because name must not show yet)
+                    if (registration == 1){
+                        gui.clientTerminalOut(client.getLastCmd()); // display last command without registered name
+                        gui.setUserInput("");
 
-                    // Ensure that the listenForMessage thread completes before moving on
-                    try {
-                        client.getListenThread().join();
-                    } catch (InterruptedException e2) {
-                        e2.printStackTrace();
+                        client.listenForMessage();
+
+                        // Ensure that the listenForMessage thread completes before moving on
+                        try {
+                            client.getListenThread().join();
+                        } catch (InterruptedException e2) {
+                            e2.printStackTrace();
+                        }
+
+                        // get name from server
+                        client.sendMessage("/getName");
+                        name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
+                        System.out.println("Name: " + name);
+                
+                        setRegistration(registration, name);
+
+                    // already registered/ taken alias
+                    } else {
+                        lastCmdDisplay();
+                        client.listenForMessage();
+                        gui.setUserInput("");
                     }
-
-                    // get name from server
-                    client.sendMessage("/getName");
-                    name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
-                    System.out.println("Name: " + name);
-            
-                    setRegistration(registration, name);
-
-                // already registered/ taken alias
                 } else {
-                    client.listenForMessage();
+                    lastCmdDisplay();
                     gui.setUserInput("");
+                    gui.clientTerminalOut("Error: Invalid command. Make sure you are joined or registered.");
                 }
                 
+            // * /? or Help command
             } else if (gui.getUserInput().trim().startsWith("/?")) {
+                lastCmdDisplay();
                 gui.clientTerminalOut("Commands: /?, /join, /register, /leave, /get, /store, /dir");
                 gui.setUserInput("");
-            }else {
+                
+            } else {
+                lastCmdDisplay();
                 gui.clientTerminalOut("Error: Command not found.");
                 gui.setUserInput("");
             }
          } 
     }   
-
 
     //*  Displays last command of user in Terminal
     public void lastCmdDisplay(){

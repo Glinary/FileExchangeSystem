@@ -15,7 +15,7 @@ public class Client {
     private String host;
     private String name;
     private int port;
-    // private Boolean joined = false;
+    private Boolean joined = false;
     private Boolean registered = false;
 
     private BufferedReader bufferedReader;
@@ -35,12 +35,12 @@ public class Client {
         return listenThread;
     }
     
-    // public Boolean getJoin() {
-    //     return joined;
-    // }
-    // public void setJoin(Boolean join) {
-    //     this.joined = join;
-    // }
+    public Boolean getJoined() {
+        return joined;
+    }
+    public void setJoined(Boolean join) {
+        this.joined = join;
+    }
 
     public String getHost() {
         return host;
@@ -83,9 +83,9 @@ public class Client {
 
     public void setSocket(String ip, int port) throws IOException  {
         Socket socket = new Socket();
-    
-        socket.connect(new InetSocketAddress(ip, port), 1000);
+        socket.connect(new InetSocketAddress(ip, port), 800);
         this.socket = socket;
+        this.joined = true;
         this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())); // change later to input from user
         this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.dataInputStream = new DataInputStream(socket.getInputStream());

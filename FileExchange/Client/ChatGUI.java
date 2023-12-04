@@ -52,7 +52,6 @@ public class ChatGUI extends JFrame {
 
 
 
-
         // ** MAIN LEFT
         JPanel leftPanel = new JPanel();
         leftPanel.setBackground(Color.BLACK);
@@ -94,7 +93,7 @@ public class ChatGUI extends JFrame {
 
             leftPanel.add(panelSouth, BorderLayout.SOUTH);
 
-        this.add(leftPanel, BorderLayout.WEST);
+            this.add(leftPanel, BorderLayout.WEST);
 
 
 
