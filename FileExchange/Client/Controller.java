@@ -196,7 +196,8 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                 lastCmdDisplay();
                 gui.clientTerminalOut("Commands: /?, /join, /register, /leave, /get, /store, /dir");
                 gui.setUserInput("");
-
+            
+            // * /leave or Leave command
             } else if (gui.getUserInput().trim().startsWith("/leave")){
                 lastCmdDisplay();
 
@@ -313,6 +314,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
            return "";
        }
    }
+    // * Auto Leaves when Client closed the GUI
     private void handleWindowClosing() {
         if (client.getJoined()) {
             // Send "/leave" command if the client is joined
