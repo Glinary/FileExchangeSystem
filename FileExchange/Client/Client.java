@@ -150,7 +150,7 @@ public class Client {
     public void receiveFile(String filePath)  {
         String fpath =  extractSentence("/download", filePath);
         String dirPath = System.getProperty("user.dir");
-        String finalPath =  dirPath + "/Client Download/" + fpath;
+        String finalPath =  dirPath + "/ClientDownload/" + fpath;
         System.out.println("Dir Path: " + dirPath);
         System.out.println("FIn Path: " + finalPath);
 
