@@ -138,7 +138,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
             
                     setRegistration(registration, name);
 
-                // already registered
+                // already registered/ taken alias
                 } else {
                     client.listenForMessage();
                     gui.setUserInput("");

@@ -94,40 +94,51 @@ public class ClientHandler implements Runnable {
     }
 
     public void registerUser(String name) throws IOException{
-        name  = extractName("/register", name).substring(0,1).toUpperCase() + extractName("/register", name).substring(1);
-        Boolean unique = true;
-        System.out.println("To register name: " + name);
-
-
-        for (int i = 0; i < clientHandlers.size() - 1; i++) {
-            System.out.println("CLIENTS: " + clientHandlers.get(i).getClientUsername());
+        name  = extractName("/register", name);
+        System.out.println("THE NAME length EXTRACTED SERVER: " + name.length());
         
-            if (clientHandlers.get(i).getClientUsername().equals(name)) {
-                unique = false;
-                System.out.println(unique);
-            }
-        }
+        if (name.length() != 0){
+            name = name.substring(0,1).toUpperCase() + name.substring(1);
+            System.out.println("To register name: " + name);
 
-        try {
-            if (this.registered == true){
-                dataOutputStream.writeInt(0);
-                sendMsg("You are already registered!");
-            } else {
+            Boolean unique = true;
 
-                if (unique == true){
-                    this.clientUsername = name;
-                    this.registered = true;
-                    dataOutputStream.writeInt(1);
-                    sendMsg("Welcome " + name + "!");
-                } else {
-                    dataOutputStream.writeInt(0);
-                    sendMsg("Error: Registration failed. Handle or alias already exists");
+            for (int i = 0; i < clientHandlers.size() - 1; i++) {
+                System.out.println("CLIENTS: " + clientHandlers.get(i).getClientUsername());
+            
+                if (clientHandlers.get(i).getClientUsername().equals(name)) {
+                    unique = false;
+                    System.out.println(unique);
                 }
             }
-        } catch (IOException e){
-            e.printStackTrace();
-            sendMsg("Error in registratoin.");
+
+            try {
+                if (this.registered == true){
+                    dataOutputStream.writeInt(0);
+                    sendMsg("You are already registered!");
+                } else {
+
+                    if (unique == true){
+                        this.clientUsername = name;
+                        this.registered = true;
+                        dataOutputStream.writeInt(1);
+                        sendMsg("Welcome " + name + "!");
+                    } else {
+                        dataOutputStream.writeInt(0);
+                        sendMsg("Error: Registration failed. Handle or alias already exists");
+                    }
+                }
+            } catch (IOException e){
+                e.printStackTrace();
+                sendMsg("Error in registratoin.");
+            }
+
+        } else {
+            dataOutputStream.writeInt(0);
+            sendMsg("Invalid registration. Please check your alias.");
+            return;
         }
+        
     }
 
     public void getUserName () throws IOException {
