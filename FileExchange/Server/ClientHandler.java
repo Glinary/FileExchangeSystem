@@ -95,7 +95,6 @@ public class ClientHandler implements Runnable {
 
     public void registerUser(String name) throws IOException{
         name  = extractName("/register", name);
-        System.out.println("THE NAME length EXTRACTED SERVER: " + name.length());
         
         if (name.length() != 0){
             name = name.substring(0,1).toUpperCase() + name.substring(1);
@@ -104,7 +103,7 @@ public class ClientHandler implements Runnable {
             Boolean unique = true;
 
             for (int i = 0; i < clientHandlers.size() - 1; i++) {
-                System.out.println("CLIENTS: " + clientHandlers.get(i).getClientUsername());
+                System.out.println("Clients joined: " + clientHandlers.get(i).getClientUsername());
             
                 if (clientHandlers.get(i).getClientUsername().equals(name)) {
                     unique = false;
@@ -152,23 +151,32 @@ public class ClientHandler implements Runnable {
 
         // Check if the file exists before attempting to send it
         String path = System.getProperty("user.dir");
-        File file = new File(path + "/Server/ServerFiles/" + filename);
+        File dir = new File(path + "/Server/ServerFiles/");
+        String [] files =  dir.list();
+        Boolean flag = false;
     
         try {
-            if (file.exists()) {
-                FileInputStream fis = new FileInputStream(file);
+            for(String file : files) {
+                if(file.equals(filename)) {
+                    flag = true;
+                }
+            }
+
+            if (flag){
+
+                File Ffile = new File(path + "/Server/ServerFiles/" + filename);
+                FileInputStream fis = new FileInputStream(Ffile);
                 byte[] buffer = new byte[1024];
                 int bytesRead;
     
                 // Send the file size to the client
-                long fileSize = file.length();
+                long fileSize = Ffile.length();
                 dataOutputStream.writeLong(fileSize);
     
                 // Send the file content in chunks
                 while ((bytesRead = fis.read(buffer)) != -1) {
                     dataOutputStream.write(buffer, 0, bytesRead);
                 }
-    
             } else {
                 // File not found, notify the client
                 dataOutputStream.writeLong(-1); // Signal that the file is not found
@@ -178,7 +186,6 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         } 
-
     }
 
     public void ackSuccess(String msg) throws IOException{

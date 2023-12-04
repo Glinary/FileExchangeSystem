@@ -20,6 +20,7 @@ public class Client {
 
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
+    private DataOutputStream dataOutputStream;
     private DataInputStream dataInputStream;
     private Thread listenThread;
 
@@ -151,8 +152,6 @@ public class Client {
         String fpath =  extractSentence("/download", filePath);
         String dirPath = System.getProperty("user.dir");
         String finalPath =  dirPath + "/ClientDownloads/" + fpath;
-        System.out.println("Dir Path: " + dirPath);
-        System.out.println("FIn Path: " + finalPath);
 
         try {
             // Receive the file size from the server
@@ -197,6 +196,40 @@ public class Client {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void sendFile(String message){
+        String filename = extractSentence("/download", message);
+
+        // Check if the file exists before attempting to send it
+        String path = System.getProperty("user.dir");
+        File file = new File(path + "/Client/ClientFiles/" + filename);
+
+        try {
+            if (file.exists()) {
+                FileInputStream fis = new FileInputStream(file);
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+    
+                // Send the file size to the client
+                long fileSize = file.length();
+                dataOutputStream.writeLong(fileSize);
+    
+                // Send the file content in chunks
+                while ((bytesRead = fis.read(buffer)) != -1) {
+                    dataOutputStream.write(buffer, 0, bytesRead);
+                }
+    
+            } else {
+                // File not found, notify the client
+                dataOutputStream.writeLong(-1); // Signal that the file is not found
+                sendMessage("Error: File not found in the server!");
+            }
+    
+        } catch (IOException e) {
+            e.printStackTrace();
+        } 
+
     }
 
 
