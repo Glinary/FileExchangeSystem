@@ -120,6 +120,22 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
 
                 gui.setUserInput("");
 
+            // * STORE Command
+            } else if (gui.getUserInput().trim().startsWith("/store")){
+
+                lastCmdDisplay();
+
+                if (validJoin && validRegister){
+                    client.sendMessage(gui.getUserInput());
+                    client.sendFile(gui.getUserInput());
+                    
+                } else {
+                    gui.clientTerminalOut("Error: Invalid command. Make sure you are joined or registered.");
+                }
+
+                client.listenForMessage();
+                gui.setUserInput("");
+
 
             // * Register Command
             } else if (gui.getUserInput().trim().startsWith("/register")){
@@ -171,7 +187,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                 lastCmdDisplay();
                 gui.clientTerminalOut("Commands: /?, /join, /register, /leave, /get, /store, /dir");
                 gui.setUserInput("");
-                
+
             } else {
                 lastCmdDisplay();
                 gui.clientTerminalOut("Error: Command not found.");

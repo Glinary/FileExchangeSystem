@@ -18,6 +18,7 @@ public class ClientHandler implements Runnable {
     private BufferedReader  bufferedReader;
     private BufferedWriter bufferedWriter;
     private DataOutputStream dataOutputStream;
+    private DataInputStream dataInputStream;
     private String clientUsername;
     private Boolean registered; 
 
@@ -30,13 +31,13 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket socket){
 
 
-
         try {
             System.out.println("listening.2.");
             this.socket =  socket;
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            this.dataInputStream = new DataInputStream(socket.getInputStream());
             this.registered = false;
             sendMsg("Connection to the File Exchange Server is successful!");
             // this.clientUsername =  bufferedReader.readLine();
@@ -69,6 +70,9 @@ public class ClientHandler implements Runnable {
                     } else if (messageFromClient.startsWith("/register")) {
                         System.out.println("I received req to register");
                         registerUser(messageFromClient);
+                    } else if (messageFromClient.startsWith("/store")) {
+                        System.out.println("I received req to store");
+                        receiveFile(messageFromClient); 
                     } else if (messageFromClient.startsWith("/getName")) {
                         System.out.println("I received req for name");
                         getUserName(); 
@@ -186,6 +190,45 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         } 
+    }
+
+
+    public void receiveFile(String message){
+        String fpath =  extractSentence("/store", message);
+        String dirPath = System.getProperty("user.dir");
+        String finalPath =  dirPath + "/Server/ServerFiles/" + fpath;
+
+        try {
+            System.out.println("ENTER HERE!: " + finalPath);
+            // Receive the file size from the server
+            long fileSize = dataInputStream.readInt();
+            System.out.println(fileSize);
+
+            if (fileSize != -1) {
+                // Receive and save the file
+                try (FileOutputStream fileOutputStream = new FileOutputStream(finalPath);
+                     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
+
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    long receivedData = 0;
+
+                    // Receive the file content in chunks
+                    while (receivedData < fileSize) {
+                        bytesRead = dataInputStream.read(buffer);
+                        receivedData += bytesRead;
+                        bufferedOutputStream.write(buffer, 0, bytesRead);
+                    }
+                    System.out.println("/serverRes File received from server: " + fpath);
+                    sendMsg("/serverRes File stored to server: " + fpath);
+                }
+            } else if (fileSize == -1) {
+                sendMsg("/serverRes File not found locally");
+            }    
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void ackSuccess(String msg) throws IOException{

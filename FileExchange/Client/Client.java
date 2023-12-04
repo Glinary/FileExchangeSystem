@@ -90,6 +90,7 @@ public class Client {
         this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())); // change later to input from user
         this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.dataInputStream = new DataInputStream(socket.getInputStream());
+        this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
         
     }
 
@@ -117,9 +118,13 @@ public class Client {
 
                     String message = bufferedReader.readLine();
 
-                    if (messageCallback != null) {
-                        messageCallback.onMessageReceived(message);
-                    }        
+                    if (message.startsWith("SERVER: /serverRes")){
+                        ackServer(message);
+                    } else {
+                        if (messageCallback != null) {
+                            messageCallback.onMessageReceived(message);
+                        }   
+                    }     
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -199,39 +204,57 @@ public class Client {
     }
 
     public void sendFile(String message){
-        String filename = extractSentence("/download", message);
-
+        String filename = extractSentence("/store", message);
+        
         // Check if the file exists before attempting to send it
         String path = System.getProperty("user.dir");
-        File file = new File(path + "/Client/ClientFiles/" + filename);
-
+        File dir = new File(path + "/Client/ClientFiles/");
+        String [] files =  dir.list();
+        Boolean flag = false;
+    
         try {
-            if (file.exists()) {
-                FileInputStream fis = new FileInputStream(file);
+            for(String file : files) {
+                if(file.equals(filename)) {
+                    System.out.println("Entered Send file checker");
+                    flag = true;
+                }
+            }
+
+        
+            if (flag){
+                File Ffile = new File(path + "/Client/ClientFiles/" + filename);
+                FileInputStream fis = new FileInputStream(Ffile);
                 byte[] buffer = new byte[1024];
                 int bytesRead;
     
                 // Send the file size to the client
-                long fileSize = file.length();
+                long fileSize = Ffile.length();
                 dataOutputStream.writeLong(fileSize);
     
                 // Send the file content in chunks
                 while ((bytesRead = fis.read(buffer)) != -1) {
                     dataOutputStream.write(buffer, 0, bytesRead);
                 }
-    
-            } else {
+            } else if (!flag) {
                 // File not found, notify the client
-                dataOutputStream.writeLong(-1); // Signal that the file is not found
-                sendMessage("Error: File not found in the server!");
+                System.out.println("FAIL SENT");
+                dataOutputStream.writeInt(-1);                   
             }
     
         } catch (IOException e) {
             e.printStackTrace();
         } 
-
     }
 
+    public void ackServer(String msg) throws IOException{
+        System.out.println("I entered successful function");
+        String serverMessage  = extractSentence("SERVER: /serverRes", msg);
+        System.out.println("SERVER MES: " + serverMessage);
+        if (messageCallback != null) {
+            messageCallback.onMessageReceived(serverMessage);
+        } 
+        
+    }
 
     // public void newSocket(String ip, int port) throws UnknownHostException, IOException{
     //     Socket socket = new Socket(ip, port);
