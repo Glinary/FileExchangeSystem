@@ -1,4 +1,4 @@
 # COMPILE and RUN
-1. run on terminal to approve script `chmod +x runS.sh` and `chmod +x runC.sh` (macOS)
-2. Open a terminal and run `./runS.sh` or `call runS.bat` on windows
-3. open another terminal and run `./runC.sh` or `call runC.bat` on windows
+1. run on terminal to approve script ```chmod +x runS.sh``` and ```chmod +x runC.sh``` (macOS)
+2. Open a terminal and run `./runS.sh` or ```call runS.bat``` on windows
+3. open another terminal and run ```./runC.sh``` or ```call runC.bat``` on windows
