@@ -115,7 +115,7 @@ public class ClientHandler implements Runnable {
             try {
                 if (this.registered == true){
                     dataOutputStream.writeInt(0);
-                    sendMsg("You are already registered!");
+                    sendMsg("Error: You are already registered!");
                 } else {
 
                     if (unique == true){
@@ -152,7 +152,7 @@ public class ClientHandler implements Runnable {
 
         // Check if the file exists before attempting to send it
         String path = System.getProperty("user.dir");
-        File file = new File(path + "/Server/" + filename);
+        File file = new File(path + "/Server/ServerFiles/" + filename);
     
         try {
             if (file.exists()) {
