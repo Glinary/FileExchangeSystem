@@ -149,23 +149,36 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
 
                 lastCmdDisplay();
 
-                if (validJoin && validRegister){
+                //tokenize the userinput into an array
+                String userInput = gui.getUserInput().trim();
+                String[] parts = userInput.split("\\s+");
 
-                    client.sendMessage(gui.getUserInput());
-                    client.receiveFile(gui.getUserInput());
+                if (parts.length == 2 && parts[0].equals("/get")) {
 
-                    client.listenForMessage();
-                    // Ensure that the listenForMessage thread completes before moving on
-                        try {
-                            client.getListenThread().join();
-                        } catch (InterruptedException e2) {
-                            e2.printStackTrace();
-                        }
+                    if (validJoin && validRegister){
+
+                        client.sendMessage(gui.getUserInput());
+                        client.receiveFile(gui.getUserInput());
+
+                        client.listenForMessage();
+                        // Ensure that the listenForMessage thread completes before moving on
+                            try {
+                                client.getListenThread().join();
+                            } catch (InterruptedException e2) {
+                                e2.printStackTrace();
+                            }
+                    } else {
+                        gui.clientTerminalOut("Error: Invalid command. Make sure you are joined or registered.");
+                    }
+
+                    gui.setUserInput("");
+
                 } else {
-                    gui.clientTerminalOut("Error: Invalid command. Make sure you are joined or registered.");
+                    gui.clientTerminalOut("Error: Command parameters do not match or is not allowed.");
+                    gui.setUserInput("");
                 }
 
-                gui.setUserInput("");
+                
 
             // * STORE Command
             } else if (gui.getUserInput().trim().startsWith("/store")){
