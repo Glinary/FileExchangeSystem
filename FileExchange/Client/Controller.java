@@ -208,7 +208,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
             // * Register Command
             } else if (gui.getUserInput().trim().startsWith("/register")){
 
-                lastCmdDisplay();
+                //lastCmdDisplay();
                 
                 //tokenize the userinput into an array
                 String userInput = gui.getUserInput().trim();
@@ -248,7 +248,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
 
                         // already registered/ taken alias
                         } else {
-                            //lastCmdDisplay();
+                            lastCmdDisplay();
                             client.listenForMessage();
                             gui.setUserInput("");
                         }
@@ -258,6 +258,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                         gui.clientTerminalOut("Error: Invalid command. Make sure you are joined.");
                     }
                 } else {
+                    lastCmdDisplay();
                     gui.clientTerminalOut("Error: Command parameters do not match or is not allowed.");
                     gui.setUserInput("");
                 }
