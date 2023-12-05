@@ -3,6 +3,7 @@ package Client;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -104,6 +105,9 @@ public class Client {
             bufferedWriter.flush();
             System.out.println("Message sent to server: " + message);
 
+        } catch (SocketException e) {
+            // Connection reset by peer
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -125,6 +129,9 @@ public class Client {
                             messageCallback.onMessageReceived(message);
                         }   
                     }     
+                } catch (SocketException e) {
+                    // Connection reset by peer
+                    handleConnectionReset();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -155,12 +162,25 @@ public class Client {
                         }
 
                     }
+                } catch (SocketException e) {
+                    // Connection reset by peer
+                    System.out.println("I am here");
+                    handleConnectionReset();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         });
         listenThread.start();
+    }
+
+    private void handleConnectionReset() {
+        // Set the joined and registered flags to false
+        joined = false;
+        registered = false;
+
+        messageCallback.onMessageReceived("Error: Server is down. You have left the server.");
+        System.out.println("Connection Reset");
     }
     
 
