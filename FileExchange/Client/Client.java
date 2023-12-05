@@ -133,8 +133,39 @@ public class Client {
         listenThread.start();
     }
 
+    public void listenForDirectory() {
+        listenThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (true) {
+                        String message = bufferedReader.readLine();
 
-        public int receiveRegistrationStatus(){
+                        if (message.equals("END_OF_LIST")) {
+                            // Break out of the loop when the end-of-list marker is received
+                            break;
+                        }
+    
+                        if (message.startsWith("SERVER: /serverRes")) {
+                            ackServer(message);
+                        } else {
+                            if (messageCallback != null) {
+                                messageCallback.onMessageReceived(message);
+                            }
+                        }
+
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        listenThread.start();
+    }
+    
+
+
+    public int receiveRegistrationStatus(){
         try {
             System.out.println("I entered receive registration - client");
             int regStatus = dataInputStream.readInt();

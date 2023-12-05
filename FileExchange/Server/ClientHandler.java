@@ -83,6 +83,9 @@ public class ClientHandler implements Runnable {
                     } else if (messageFromClient.startsWith("/leave")){
                         System.out.println("I received disconnection req");
                         disconnectClient();
+                    } else if (messageFromClient.startsWith("/dir")){
+                        System.out.println("I received directory req.");
+                        sendDirectory();
                     } else {
                     //    broadcastMessage(messageFromClient);
                     }
@@ -199,6 +202,30 @@ public class ClientHandler implements Runnable {
             e.printStackTrace();
         } 
     }
+
+    public void sendDirectory() throws IOException {
+        String path = System.getProperty("user.dir");
+        File dir = new File(path + "/Server/ServerFiles/");
+        String[] files = dir.list();
+    
+        System.out.println("Sending Directory List...");
+    
+        bufferedWriter.write("Server Directory:");
+        bufferedWriter.newLine();
+    
+        for (String file : files) {
+            System.out.println(file);
+            bufferedWriter.write(file);
+            bufferedWriter.newLine();
+        }
+    
+        // Indicator for the end of the list
+        bufferedWriter.write("END_OF_LIST");
+        bufferedWriter.newLine();
+    
+        bufferedWriter.flush();
+    }
+    
 
 
     public void receiveFile(String message){

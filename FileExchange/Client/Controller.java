@@ -215,6 +215,28 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
 
                 gui.setUserInput("");
                 
+            } else if (gui.getUserInput().trim().startsWith("/dir")){
+
+                lastCmdDisplay();
+
+                if (validJoin && validRegister){
+
+                    client.sendMessage(gui.getUserInput());
+
+                    client.listenForDirectory();
+                    // // Ensure that the listenForMessage thread completes before moving on
+                    //     try {
+                    //         client.getListenThread().join();
+                    //     } catch (InterruptedException e2) {
+                    //         e2.printStackTrace();
+                    //     }
+
+                } else {
+                    gui.clientTerminalOut("Error: Invalid command. Make sure you have joined and registered.");
+                }
+
+                gui.setUserInput("");
+
             } else {
                 lastCmdDisplay();
                 gui.clientTerminalOut("Error: Command not found.");
