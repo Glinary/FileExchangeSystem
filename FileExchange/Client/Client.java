@@ -266,10 +266,10 @@ public class Client {
                 while ((bytesRead = fis.read(buffer)) != -1) {
                     dataOutputStream.write(buffer, 0, bytesRead);
                 }
-            } else if (!flag) {
+            } else  {
                 // File not found, notify the client
                 System.out.println("FAIL SENT");
-                dataOutputStream.writeInt(-1);                   
+                dataOutputStream.writeLong(-1);                   
             }
     
         } catch (IOException e) {

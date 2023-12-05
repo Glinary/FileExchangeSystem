@@ -253,7 +253,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                             gui.setUserInput("");
                         }
                     } else {
-                        //lastCmdDisplay();
+                        lastCmdDisplay();
                         gui.setUserInput("");
                         gui.clientTerminalOut("Error: Invalid command. Make sure you are joined.");
                     }

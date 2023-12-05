@@ -244,7 +244,7 @@ public class ClientHandler implements Runnable {
         try {
             System.out.println("ENTER HERE!: " + finalPath);
             // Receive the file size from the server
-            long fileSize = dataInputStream.readInt();
+            long fileSize = dataInputStream.readLong();
             System.out.println(fileSize);
 
             if (fileSize != -1) {
