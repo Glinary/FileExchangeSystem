@@ -118,12 +118,11 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                             client.setHost(hostCharacters);
                             
                             try {
-                                int successConnect = client.setSocket(client.getHost(), client.getPort());
+                                client.setSocket(client.getHost(), client.getPort());
 
                                 // Listen to Server:
-                                if (successConnect == 1){
                                 client.listenForMessage();
-                                }
+                            
             
                                 gui.setUserInput(""); // clear input box
                             } catch (IOException e1) {
