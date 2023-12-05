@@ -62,8 +62,8 @@ public class ClientHandler implements Runnable {
        
        while (!socket.isClosed()) { // socket.isConnected()
            try {
-               messageFromClient = bufferedReader.readLine();
-               System.out.println("Received message from client: " + messageFromClient + "/n");
+               messageFromClient = bufferedReader.readLine().trim();
+               System.out.println("Received message from client: " + messageFromClient);
 
                if (messageFromClient != null) {
                    if (messageFromClient.startsWith("/download")) {

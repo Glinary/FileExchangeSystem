@@ -237,21 +237,33 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
             
             // * /leave or Leave command
             } else if (gui.getUserInput().trim().startsWith("/leave")){
+
+                //tokenize the userinput into an array
+                String userInput = gui.getUserInput().trim();
+                String[] parts = userInput.split("\\s+");
+
                 lastCmdDisplay();
 
-                if(validJoin) {
-                    client.sendMessage(gui.getUserInput());
-                    client.leave();
-                    client.setJoined(false);
-                    client.setRegistered(false);
-                    gui.clientTerminalOut("Connection is closed. Thank you!");
+                //check if parts has only 1 element
+                if (parts.length == 1 && parts[0].equals("/leave")) {
+                
+                    if(validJoin) {
+                        client.sendMessage(gui.getUserInput());
+                        client.leave();
+                        client.setJoined(false);
+                        client.setRegistered(false);
+                        gui.clientTerminalOut("Connection is closed. Thank you!");
 
 
+                    } else {
+                        gui.clientTerminalOut("Error: Disconnection failed. Please connect to the server first.");
+                    }
+
+                    gui.setUserInput("");
                 } else {
-                    gui.clientTerminalOut("Error: Disconnection failed. Please connect to the server first.");
+                    gui.clientTerminalOut("Error: Command parameters do not match or is not allowed.");
+                    gui.setUserInput("");
                 }
-
-                gui.setUserInput("");
                 
             } else if (gui.getUserInput().trim().startsWith("/dir")){
 
