@@ -115,16 +115,18 @@ public class Client {
             public void run(){
                 
                 try {
+                    while(joined) {
+                        String message = bufferedReader.readLine();
 
-                    String message = bufferedReader.readLine();
+                        if (message.startsWith("SERVER: /serverRes")){
+                            ackServer(message);
+                        } else {
+                            if (messageCallback != null) {
+                                messageCallback.onMessageReceived(message);
+                            }   
+                        }     
 
-                    if (message.startsWith("SERVER: /serverRes")){
-                        ackServer(message);
-                    } else {
-                        if (messageCallback != null) {
-                            messageCallback.onMessageReceived(message);
-                        }   
-                    }     
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -145,6 +145,7 @@ public class ClientHandler implements Runnable {
                         this.registered = true;
                         dataOutputStream.writeInt(1);
                         sendMsg("Welcome " + name + "!");
+                        broadcastMessage(name + " had joined!");
                     } else {
                         dataOutputStream.writeInt(0);
                         sendMsg("Error: Registration failed. Handle or alias already exists");
@@ -281,20 +282,27 @@ public class ClientHandler implements Runnable {
     }
 
 
-    public void broadcastMessage(String messageToSend){
+    // public void broadcastMessage(String messageToSend){
+    //     for (ClientHandler clientHandler: clientHandlers ){
+    //         try {
+    //             // if not you, send message to that client
+    //             if (!clientHandler.clientUsername.equals(clientUsername)){
+    //                 clientHandler.bufferedWriter.write(messageToSend);
+    //                 clientHandler.bufferedWriter.newLine();
+    //                 clientHandler.bufferedWriter.flush();
+    //         }
+    //     } catch (IOException e) {
+    //             closeEverything(socket, bufferedReader, bufferedWriter);
+    //         }
+    //     }
+    // }
+
+    public void broadcastMessage(String messageToSend) throws IOException{
         for (ClientHandler clientHandler: clientHandlers ){
-            try {
-                // if not you, send message to that client
-                if (!clientHandler.clientUsername.equals(clientUsername)){
-                    clientHandler.bufferedWriter.write(messageToSend);
-                    clientHandler.bufferedWriter.newLine();
-                    clientHandler.bufferedWriter.flush();
-            }
-        } catch (IOException e) {
-                closeEverything(socket, bufferedReader, bufferedWriter);
-            }
+            clientHandler.sendMsg(messageToSend);
         }
     }
+
 
     public void disconnectClient(){
         try {
@@ -314,7 +322,7 @@ public class ClientHandler implements Runnable {
     // user disconnected
     public void removeClientHandler() {
         clientHandlers.remove(this);
-        broadcastMessage("SERVER: " + clientUsername + "has left the chat!");
+        //broadcastMessage("SERVER: " + clientUsername + "has left the chat!");
     }
 
     public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter){
