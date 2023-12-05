@@ -87,18 +87,19 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                     // client creds
                     client.setPort(port);
                     client.setHost(hostCharacters);
-
                     
                     try {
-                        client.setSocket(client.getHost(), client.getPort());
+                        int successConnect = client.setSocket(client.getHost(), client.getPort());
+
                         // Listen to Server:
+                        if (successConnect == 1){
                         client.listenForMessage();
+                        }
+    
                         gui.setUserInput(""); // clear input box
                     } catch (IOException e1) {
-                        // e1.printStackTrace();
-                        gui.clientTerminalOut("Error: Unsuccessful connection. Check IP address or port");
+                        gui.clientTerminalOut("Error: Connection to the Server has failed! Please check IP Address and Port Number.");
                         gui.setUserInput("");
-                        // gui.clientTerminalOut(client.getJoin().toString());  // checker
                     }
                 } else {
                     gui.clientTerminalOut("Error: You are already joined to the server.");

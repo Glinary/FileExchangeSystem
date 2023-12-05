@@ -82,16 +82,24 @@ public class Client {
     }
 
 
-    public void setSocket(String ip, int port) throws IOException  {
-        Socket socket = new Socket();
-        socket.connect(new InetSocketAddress(ip, port), 800);
-        this.socket = socket;
-        this.joined = true;
-        this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())); // change later to input from user
-        this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        this.dataInputStream = new DataInputStream(socket.getInputStream());
-        this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
-        
+    public int setSocket(String ip, int port) throws IOException  {
+
+        if (ip.equals("127.0.0.1") || ip.equals("localhost")){
+            Socket socket = new Socket();
+            socket.connect(new InetSocketAddress(ip, port), 800);
+            this.socket = socket;
+            this.joined = true;
+            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())); 
+            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            this.dataInputStream = new DataInputStream(socket.getInputStream());
+            this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            return 1;
+        } else {
+            if (messageCallback != null) {
+                messageCallback.onMessageReceived("Error: Connection to the Server has failed! Please check IP Address and Port Number.");
+            }
+            return 0;
+        }
     }
 
 
