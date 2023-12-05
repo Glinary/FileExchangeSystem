@@ -93,10 +93,11 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
 
                 lastCmdDisplay();
                 //check if array has 3 elements exactly
-                if (parts.length == 3) {
+                if (parts.length == 3 && parts[0].equals("/join")) {
                     String hostCharacters = parts[1];
                     String portCharacters = parts[2];
 
+                    //check if command is valid
                     //check if first index is valid host
                     //check if second index is valid port
                     if (isValidHost(hostCharacters) && isValidPort(portCharacters)) {
@@ -171,69 +172,104 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
             } else if (gui.getUserInput().trim().startsWith("/store")){
 
                 lastCmdDisplay();
+                
+                //tokenize the userinput into an array
+                String userInput = gui.getUserInput().trim();
+                String[] parts = userInput.split("\\s+");
 
-                if (validJoin && validRegister){
-                    client.sendMessage(gui.getUserInput());
-                    client.sendFile(gui.getUserInput());
-                    
+                if (parts.length == 2 && parts[0].equals("/store")) {
+                    if (validJoin && validRegister){
+                        client.sendMessage(gui.getUserInput());
+                        client.sendFile(gui.getUserInput());
+                        
+                    } else {
+                        gui.clientTerminalOut("Error: Invalid command. Make sure you are joined or registered.");
+                    }
+
+                    client.listenForMessage();
+                    gui.setUserInput("");
                 } else {
-                    gui.clientTerminalOut("Error: Invalid command. Make sure you are joined or registered.");
+                    gui.clientTerminalOut("Error: Command parameters do not match or is not allowed.");
+                    gui.setUserInput("");
                 }
-
-                client.listenForMessage();
-                gui.setUserInput("");
-
 
             // * Register Command
             } else if (gui.getUserInput().trim().startsWith("/register")){
 
-                if (validJoin) {
-                    int registration = 0; 
-                    String name = null;
-
-                    // send message /register to server using client
-                    client.sendMessage(gui.getUserInput());
-                    registration = client.receiveRegistrationStatus();
+                lastCmdDisplay();
                 
+                //tokenize the userinput into an array
+                String userInput = gui.getUserInput().trim();
+                String[] parts = userInput.split("\\s+");
 
-                    // display last command (differs on other commands because name must not show yet)
-                    if (registration == 1){
-                        gui.clientTerminalOut(client.getLastCmd()); // display last command without registered name
-                        gui.setUserInput("");
+                if (parts.length == 2 && parts[0].equals("/register")) {
+                    
+                    if (validJoin) {
+                        int registration = 0; 
+                        String name = null;
 
-                        client.listenForMessage();
+                        // send message /register to server using client
+                        client.sendMessage(gui.getUserInput());
+                        registration = client.receiveRegistrationStatus();
+                    
 
-                        // Ensure that the listenForMessage thread completes before moving on
-                        try {
-                            client.getListenThread().join();
-                        } catch (InterruptedException e2) {
-                            e2.printStackTrace();
+                        // display last command (differs on other commands because name must not show yet)
+                        if (registration == 1){
+                            gui.clientTerminalOut(client.getLastCmd()); // display last command without registered name
+                            gui.setUserInput("");
+
+                            client.listenForMessage();
+
+                            // Ensure that the listenForMessage thread completes before moving on
+                            try {
+                                client.getListenThread().join();
+                            } catch (InterruptedException e2) {
+                                e2.printStackTrace();
+                            }
+
+                            // get name from server
+                            client.sendMessage("/getName");
+                            name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
+                            System.out.println("Name: " + name);
+                    
+                            setRegistration(registration, name);
+
+                        // already registered/ taken alias
+                        } else {
+                            //lastCmdDisplay();
+                            client.listenForMessage();
+                            gui.setUserInput("");
                         }
-
-                        // get name from server
-                        client.sendMessage("/getName");
-                        name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
-                        System.out.println("Name: " + name);
-                
-                        setRegistration(registration, name);
-
-                    // already registered/ taken alias
                     } else {
-                        lastCmdDisplay();
-                        client.listenForMessage();
+                        //lastCmdDisplay();
                         gui.setUserInput("");
+                        gui.clientTerminalOut("Error: Invalid command. Make sure you are joined or registered.");
                     }
                 } else {
-                    lastCmdDisplay();
+                    gui.clientTerminalOut("Error: Command parameters do not match or is not allowed.");
                     gui.setUserInput("");
-                    gui.clientTerminalOut("Error: Invalid command. Make sure you are joined or registered.");
                 }
+
+
+                
                 
             // * /? or Help command
             } else if (gui.getUserInput().trim().startsWith("/?")) {
+
                 lastCmdDisplay();
-                gui.clientTerminalOut("Commands: /?, /join, /register, /leave, /get, /store, /dir");
-                gui.setUserInput("");
+                
+                //tokenize the userinput into an array
+                String userInput = gui.getUserInput().trim();
+                String[] parts = userInput.split("\\s+");
+
+                if (parts.length == 1 && parts[0].equals("/?")) {
+                    gui.clientTerminalOut("Commands: /?, /join, /register, /leave, /get, /store, /dir");
+                    gui.setUserInput("");
+                } else {
+                    gui.clientTerminalOut("Error: Command parameters do not match or is not allowed.");
+                    gui.setUserInput("");
+                }
+                
             
             // * /leave or Leave command
             } else if (gui.getUserInput().trim().startsWith("/leave")){
@@ -269,23 +305,36 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
 
                 lastCmdDisplay();
 
-                if (validJoin && validRegister){
+                //tokenize the userinput into an array
+                String userInput = gui.getUserInput().trim();
+                String[] parts = userInput.split("\\s+");
 
-                    client.sendMessage(gui.getUserInput());
+                lastCmdDisplay();
 
-                    client.listenForDirectory();
-                    // // Ensure that the listenForMessage thread completes before moving on
-                    //     try {
-                    //         client.getListenThread().join();
-                    //     } catch (InterruptedException e2) {
-                    //         e2.printStackTrace();
-                    //     }
+                if (parts.length == 1 && parts[0].equals("/dir")) {
 
+                    if (validJoin && validRegister){
+                        client.sendMessage(gui.getUserInput());
+
+                        client.listenForDirectory();
+                        // // Ensure that the listenForMessage thread completes before moving on
+                        //     try {
+                        //         client.getListenThread().join();
+                        //     } catch (InterruptedException e2) {
+                        //         e2.printStackTrace();
+                        //     }
+
+                    } else {
+                        gui.clientTerminalOut("Error: Invalid command. Make sure you have joined and registered.");
+                    }
+
+                    gui.setUserInput("");
                 } else {
-                    gui.clientTerminalOut("Error: Invalid command. Make sure you have joined and registered.");
+                    gui.clientTerminalOut("Error: Command parameters do not match or is not allowed.");
+                    gui.setUserInput("");
                 }
 
-                gui.setUserInput("");
+                
 
             } else {
                 lastCmdDisplay();
