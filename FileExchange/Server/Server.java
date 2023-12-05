@@ -49,7 +49,7 @@ public class Server {
 
     public static void main(String[] args) throws IOException {
 
-        int port = 9000;
+        int port = 12345;
 
         // listen to port
         ServerSocket serverSocket = new ServerSocket(port);
