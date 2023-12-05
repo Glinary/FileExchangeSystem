@@ -227,7 +227,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                             }
 
                             // get name from server
-                            client.sendMessage("/getName");
+                            client.sendMessage("/pullName");
                             name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
                             System.out.println("Name: " + name);
                     

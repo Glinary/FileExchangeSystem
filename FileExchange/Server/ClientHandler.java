@@ -75,7 +75,7 @@ public class ClientHandler implements Runnable {
                     } else if (messageFromClient.startsWith("/store")) {
                         System.out.println("I received req to store");
                         receiveFile(messageFromClient); 
-                    } else if (messageFromClient.startsWith("/getName")) {
+                    } else if (messageFromClient.startsWith("/pullName")) {
                         System.out.println("I received req for name");
                         getUserName(); 
                     } else if (messageFromClient.startsWith("/success")){
