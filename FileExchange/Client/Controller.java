@@ -145,7 +145,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
 
             
             // * Download Command
-            } else if (gui.getUserInput().trim().startsWith("/download")){
+            } else if (gui.getUserInput().trim().startsWith("/get")){
 
                 lastCmdDisplay();
 
@@ -242,7 +242,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                     } else {
                         //lastCmdDisplay();
                         gui.setUserInput("");
-                        gui.clientTerminalOut("Error: Invalid command. Make sure you are joined or registered.");
+                        gui.clientTerminalOut("Error: Invalid command. Make sure you are joined.");
                     }
                 } else {
                     gui.clientTerminalOut("Error: Command parameters do not match or is not allowed.");

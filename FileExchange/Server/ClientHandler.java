@@ -66,7 +66,7 @@ public class ClientHandler implements Runnable {
                System.out.println("Received message from client: " + messageFromClient);
 
                if (messageFromClient != null) {
-                   if (messageFromClient.startsWith("/download")) {
+                   if (messageFromClient.startsWith("/get")) {
                         System.out.println("I received req to download!");
                         handleFileDownload(messageFromClient);
                     } else if (messageFromClient.startsWith("/register")) {
@@ -170,7 +170,7 @@ public class ClientHandler implements Runnable {
 
 
     public void handleFileDownload(String message) {
-        String filename = extractSentence("/download", message);
+        String filename = extractSentence("/get", message);
 
         // Check if the file exists before attempting to send it
         String path = System.getProperty("user.dir");
@@ -337,7 +337,7 @@ public class ClientHandler implements Runnable {
     public String extractFilename(String msg){
          // Define a regex pattern to match "/register" followed by a space and capture the word
         // The word is captured in a capturing group (indicated by parentheses)
-        String regex = "/download\\s+([\\S]+)";
+        String regex = "/get\\s+([\\S]+)";
 
         
         // Create a Pattern object from the regex

@@ -185,7 +185,7 @@ public class Client {
 
 
     public void receiveFile(String filePath)  {
-        String fpath =  extractSentence("/download", filePath);
+        String fpath =  extractSentence("/get", filePath);
         String dirPath = System.getProperty("user.dir");
         String finalPath =  dirPath + "/ClientDownloads/" + fpath;
 
