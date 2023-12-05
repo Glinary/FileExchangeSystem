@@ -348,6 +348,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                 
 
             } else {
+                lastCmdDisplay();
                 gui.clientTerminalOut("Error: Command not found.");
                 gui.setUserInput("");
             }
