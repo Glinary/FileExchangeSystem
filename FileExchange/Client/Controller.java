@@ -308,8 +308,6 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                 String userInput = gui.getUserInput().trim();
                 String[] parts = userInput.split("\\s+");
 
-                lastCmdDisplay();
-
                 if (parts.length == 1 && parts[0].equals("/dir")) {
 
                     if (validJoin && validRegister){
@@ -336,7 +334,6 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                 
 
             } else {
-                lastCmdDisplay();
                 gui.clientTerminalOut("Error: Command not found.");
                 gui.setUserInput("");
             }
