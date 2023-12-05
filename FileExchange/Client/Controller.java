@@ -56,6 +56,21 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
         // TODO Auto-generated method stub
     }
 
+    private static boolean isValidHost(String ipAddress) {
+        System.out.println("isvalidhost reads " + ipAddress);
+        return ipAddress.equals("localhost") || ipAddress.equals("127.0.0.1");
+    }
+
+    private static boolean isValidPort(String port) {
+        System.out.println("isvalidhost port " + port);
+        try {
+            int portNumber = Integer.parseInt(port);
+            return portNumber >= 0 && portNumber <= 65535;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         // TODO Auto-generated method stub
@@ -72,38 +87,60 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
             // * JOIN Command
             if (gui.getUserInput().trim().startsWith("/join")){
 
+                //tokenize the userinput into an array
+                String userInput = gui.getUserInput().trim();
+                String[] parts = userInput.split("\\s+");
+
                 lastCmdDisplay();
+                //check if array has 3 elements exactly
+                if (parts.length == 3) {
+                    String hostCharacters = parts[1];
+                    String portCharacters = parts[2];
 
-                if (!validJoin){
-                    // get port
-                    String portCharacters = extractPort(gui.getUserInput());
-                    System.out.println("Last port characters: " + portCharacters);
-                    int port = Integer.parseInt(portCharacters);
+                    //check if first index is valid host
+                    //check if second index is valid port
+                    if (isValidHost(hostCharacters) && isValidPort(portCharacters)) {
+             
 
-                    // get host
-                    String hostCharacters =  extractHost(gui.getUserInput());
-                    System.out.println("Last host characters: " + hostCharacters);
+                        if (!validJoin){
+                            // get port
+                            //String portCharacters = extractPort(gui.getUserInput());
+                            System.out.println("Last port characters: " + portCharacters);
+                            int port = Integer.parseInt(portCharacters);
 
-                    // client creds
-                    client.setPort(port);
-                    client.setHost(hostCharacters);
-                    
-                    try {
-                        int successConnect = client.setSocket(client.getHost(), client.getPort());
+                            // get host
+                            //String hostCharacters =  extractHost(gui.getUserInput());
+                            System.out.println("Last host characters: " + hostCharacters);
 
-                        // Listen to Server:
-                        if (successConnect == 1){
-                        client.listenForMessage();
+                            // client creds
+                            client.setPort(port);
+                            client.setHost(hostCharacters);
+                            
+                            try {
+                                int successConnect = client.setSocket(client.getHost(), client.getPort());
+
+                                // Listen to Server:
+                                if (successConnect == 1){
+                                client.listenForMessage();
+                                }
+            
+                                gui.setUserInput(""); // clear input box
+                            } catch (IOException e1) {
+                                gui.clientTerminalOut("Error: Connection to the Server has failed! Please check IP Address and Port Number.");
+                                gui.setUserInput("");
+                            }
+                        } else {
+                            gui.clientTerminalOut("Error: You are already joined to the server.");
+                            
                         }
-    
-                        gui.setUserInput(""); // clear input box
-                    } catch (IOException e1) {
+                    } else {
                         gui.clientTerminalOut("Error: Connection to the Server has failed! Please check IP Address and Port Number.");
                         gui.setUserInput("");
                     }
                 } else {
-                    gui.clientTerminalOut("Error: You are already joined to the server.");
+                    gui.clientTerminalOut("Error: Command parameters do not match or is not allowed.");
                     gui.setUserInput("");
+                    
                 }
 
             
