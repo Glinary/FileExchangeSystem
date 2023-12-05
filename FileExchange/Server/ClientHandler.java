@@ -21,6 +21,7 @@ public class ClientHandler implements Runnable {
     private DataOutputStream dataOutputStream;
     private DataInputStream dataInputStream;
     private String clientUsername;
+    private Boolean joined;
     private Boolean registered; 
 
     
@@ -117,12 +118,19 @@ public class ClientHandler implements Runnable {
 
             Boolean unique = true;
 
+            System.out.println("Client Handler Size: " + clientHandlers.size());
+
             for (int i = 0; i < clientHandlers.size() - 1; i++) {
-                System.out.println("Clients joined: " + clientHandlers.get(i).getClientUsername());
-            
-                if (clientHandlers.get(i).getClientUsername().equals(name)) {
-                    unique = false;
-                    System.out.println(unique);
+
+                if (clientHandlers.get(i).registered){
+                    System.out.println("Clients joined: " + clientHandlers.get(i).getClientUsername());
+                
+                    if (clientHandlers.get(i).getClientUsername().equals(name)) {
+                        unique = false;
+                        System.out.println(unique);
+                    }
+                } else {
+                    unique = true;
                 }
             }
 
@@ -257,7 +265,7 @@ public class ClientHandler implements Runnable {
                     System.out.println("/serverRes File received from server: " + fpath);
                     sendMsg("/serverRes File stored to server: " + fpath);
                 }
-            } else if (fileSize == -1) {
+            } else {
                 sendMsg("/serverRes File not found locally");
             }    
 
