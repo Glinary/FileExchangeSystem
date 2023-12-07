@@ -5,6 +5,8 @@ package Server;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -237,41 +239,47 @@ public class ClientHandler implements Runnable {
 
 
     public void receiveFile(String message){
-        String fpath =  extractSentence("/store", message);
-        String dirPath = System.getProperty("user.dir");
-        String finalPath =  dirPath + "/Server/ServerFiles/" + fpath;
+            String fpath =  extractSentence("/store", message);
+            String dirPath = System.getProperty("user.dir");
+            String finalPath =  dirPath + "/Server/ServerFiles/" + fpath;
 
-        try {
-            System.out.println("ENTER HERE!: " + finalPath);
-            // Receive the file size from the server
-            long fileSize = dataInputStream.readLong();
-            System.out.println(fileSize);
+            LocalDateTime currentDateTime = LocalDateTime.now();
 
-            if (fileSize != -1) {
-                // Receive and save the file
-                try (FileOutputStream fileOutputStream = new FileOutputStream(finalPath);
-                     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
+            // Format LocalDateTime to a human-readable string
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            String formattedDateTime = currentDateTime.format(formatter);
 
-                    byte[] buffer = new byte[1024];
-                    int bytesRead;
-                    long receivedData = 0;
+            try {
+                System.out.println("ENTER HERE!: " + finalPath);
+                // Receive the file size from the server
+                long fileSize = dataInputStream.readLong();
+                System.out.println(fileSize);
 
-                    // Receive the file content in chunks
-                    while (receivedData < fileSize) {
-                        bytesRead = dataInputStream.read(buffer);
-                        receivedData += bytesRead;
-                        bufferedOutputStream.write(buffer, 0, bytesRead);
+                if (fileSize != -1) {
+                    // Receive and save the file
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(finalPath);
+                        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
+
+                        byte[] buffer = new byte[1024];
+                        int bytesRead;
+                        long receivedData = 0;
+
+                        // Receive the file content in chunks
+                        while (receivedData < fileSize) {
+                            bytesRead = dataInputStream.read(buffer);
+                            receivedData += bytesRead;
+                            bufferedOutputStream.write(buffer, 0, bytesRead);
+                        }
+                        System.out.println("/serverRes File received from server: " + fpath);
+                        sendMsg("/serverRes " + this.clientUsername + " (" + formattedDateTime + ") "  + "stored a file to server: " + fpath);
                     }
-                    System.out.println("/serverRes File received from server: " + fpath);
-                    sendMsg("/serverRes File stored to server: " + fpath);
-                }
-            } else {
-                sendMsg("/serverRes File not found locally");
-            }    
+                } else {
+                    sendMsg("/serverRes File not found locally");
+                }    
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
 
     public void ackSuccess(String msg) throws IOException{
