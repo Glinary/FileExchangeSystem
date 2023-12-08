@@ -35,8 +35,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
     }
 
     public void updateView() {
-        SwingUtilities.invokeLater(() -> gui.getTerminalOut());
-        
+        SwingUtilities.invokeLater(() -> gui.getTerminalOut());        
     }
 
     @Override
@@ -143,7 +142,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                     
                 }
 
-            
+                updateView();
             // * Download Command
             } else if (gui.getUserInput().trim().startsWith("/get")){
 
@@ -155,7 +154,7 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
 
                 if (parts.length == 2 && parts[0].equals("/get")) {
 
-                    if (validJoin && validRegister){
+                    if (validJoin){
 
                         client.sendMessage(gui.getUserInput());
                         client.receiveFile(gui.getUserInput());
@@ -221,35 +220,43 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                         String name = null;
 
                         // send message /register to server using client
-                        client.sendMessage(gui.getUserInput());
+                        client.sendMessage("/checkReg");
                         registration = client.receiveRegistrationStatus();
-                    
 
-                        // display last command (differs on other commands because name must not show yet)
-                        if (registration == 1){
-                            gui.clientTerminalOut(client.getLastCmd()); // display last command without registered name
-                            gui.setUserInput("");
+                        if (registration != 1){
 
-                            client.listenForMessage();
+                            client.sendMessage(gui.getUserInput());
+                            client.sendMessage("/checkReg");
+                            registration = client.receiveRegistrationStatus();
+                        
 
-                            // Ensure that the listenForMessage thread completes before moving on
-                            try {
-                                client.getListenThread().join();
-                            } catch (InterruptedException e2) {
-                                e2.printStackTrace();
+                            // display last command (differs on other commands because name must not show yet)
+                            if (registration == 1){
+                                gui.clientTerminalOut(client.getLastCmd()); // display last command without registered name
+                                gui.setUserInput("");
+
+                                // client.listenForMessage();
+
+                                // // Ensure that the listenForMessage thread completes before moving on
+                                // try {
+                                //     client.getListenThread().join();
+                                // } catch (InterruptedException e2) {
+                                //     e2.printStackTrace();
+                                // }
+
+                                // get name from server
+                                client.sendMessage("/pullName");
+                                name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
+                                System.out.println("Name: " + name);
+                        
+                                setRegistration(registration, name);
+                            } else {
+                                gui.clientTerminalOut("Alias is already taken.");
                             }
-
-                            // get name from server
-                            client.sendMessage("/pullName");
-                            name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
-                            System.out.println("Name: " + name);
-                    
-                            setRegistration(registration, name);
 
                         // already registered/ taken alias
                         } else {
                             lastCmdDisplay();
-                            client.listenForMessage();
                             gui.setUserInput("");
                         }
                     } else {
@@ -384,46 +391,6 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
         });
     }
 
-
-    //* Extract Port from user input
-    private static String extractPort(String input) {
-        // Regular expression to match numbers after the last space in the input string
-        String regex = "\\s(\\d+)$"; // Matches one or more digits after the last space
-
-        // Create a Pattern object
-        Pattern pattern = Pattern.compile(regex);
-
-        // Create a Matcher object
-        Matcher matcher = pattern.matcher(input);
-
-        // Find the last match (numbers after the last space)
-        String portExtracted = null;
-        if (matcher.find()) {
-            portExtracted = matcher.group(1); // Group 1 contains the matched digits
-        }
-
-        return portExtracted;
-    }
-
-    // * Extract Host from user input
-    private static String extractHost(String input) {
-        // Regular expression to match the string after "/join" and before the second space
-        String regex = "/join\\s(\\S+)"; // Matches "/join", a space, and captures the string before the second space
-
-        // Create a Pattern object
-        Pattern pattern = Pattern.compile(regex);
-
-        // Create a Matcher object
-        Matcher matcher = pattern.matcher(input);
-
-        // Find the match
-        String hostExtracted = null;
-        if (matcher.find()) {
-           hostExtracted = matcher.group(1); // Group 1 contains the captured string
-        }
-
-        return hostExtracted;
-    }
 
      // * Extract Name from user input
      private static String extractName(String key, String input) {

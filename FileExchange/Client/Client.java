@@ -100,9 +100,8 @@ public class Client {
     public void sendMessage(String message){
         try {
             
-            bufferedWriter.write(message);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
+            dataOutputStream.writeUTF(message);
+            dataOutputStream.flush();
             System.out.println("Message sent to server: " + message);
 
         } catch (SocketException e) {
@@ -118,22 +117,27 @@ public class Client {
             @Override
             public void run(){
                 
-                try {
+                String message;
 
-                    String message = bufferedReader.readLine();
+                 while (socket.isConnected()){
 
-                    if (message.startsWith("SERVER: /serverRes")){
-                        ackServer(message);
-                    } else {
-                        if (messageCallback != null) {
-                            messageCallback.onMessageReceived(message);
-                        }   
-                    }     
-                } catch (SocketException e) {
-                    // Connection reset by peer
-                    handleConnectionReset();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    try {
+                        message = dataInputStream.readUTF();
+                        System.out.println("RECEIVER FROM SERVER: " + message);
+
+                        if (message.startsWith("SERVER: /serverRes")){
+                            ackServer(message);
+                        } else {
+                            if (messageCallback != null) {
+                                messageCallback.onMessageReceived(message);
+                            }   
+                        }     
+                    } catch (SocketException e) {
+                        // Connection reset by peer
+                        handleConnectionReset();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }); 
@@ -245,7 +249,7 @@ public class Client {
 
     public String receiveUserName(){
         try {
-            String username =  bufferedReader.readLine();
+            String username =  dataInputStream.readUTF();
             System.out.println("Name returned from server: " + username);
             return username;
         } catch (Exception e) {

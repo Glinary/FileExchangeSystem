@@ -47,7 +47,12 @@ public class ClientHandler implements Runnable {
             // this.clientUsername =  bufferedReader.readLine();
             clientHandlers.add(this);
             System.out.println("listening.3.");
-            // broadcastMessage("SERVER: " + clientUsername + " has entered the chat!");
+
+            for (int i = 0; i < clientHandlers.size() - 1; i++) {
+                System.out.println("I ENTER HERE");
+                broadcastMessage("A client entered!");
+            }
+        
 
         } catch (IOException e){
             // closeEverything(socket, bufferedReader, bufferedWriter);
@@ -64,8 +69,9 @@ public class ClientHandler implements Runnable {
        
        while (!socket.isClosed()) { // socket.isConnected()
            try {
-               messageFromClient = bufferedReader.readLine().trim();
+               messageFromClient = dataInputStream.readUTF().trim();
                System.out.println("Received message from client: " + messageFromClient);
+               broadcastMessage("TRY");
 
                if (messageFromClient != null) {
                    if (messageFromClient.startsWith("/get")) {
@@ -80,6 +86,9 @@ public class ClientHandler implements Runnable {
                     } else if (messageFromClient.startsWith("/pullName")) {
                         System.out.println("I received req for name");
                         getUserName(); 
+                    } else if (messageFromClient.startsWith("/checkReg")) {
+                        System.out.println("I received req for checkreg");
+                        sendRegistrationStatus();
                     } else if (messageFromClient.startsWith("/success")){
                         System.out.println("I received successful msg");
                         ackSuccess(messageFromClient);
@@ -106,63 +115,56 @@ public class ClientHandler implements Runnable {
     public void sendMsg(String msg) throws IOException{
         System.out.println("The sent msg from server is: " + msg);
 
-        bufferedWriter.write("SERVER: " + msg);
-        bufferedWriter.newLine();
-        bufferedWriter.flush();
+        // Using writeUTF to write text data
+        dataOutputStream.writeUTF("SERVER: " + msg);
+        dataOutputStream.flush();
     }
 
     public void registerUser(String name) throws IOException{
         name  = extractName("/register", name);
         
-        if (name.length() != 0){
-            name = name.substring(0,1).toUpperCase() + name.substring(1);
-            System.out.println("To register name: " + name);
+        name = name.substring(0,1).toUpperCase() + name.substring(1);
+        System.out.println("To register name: " + name);
 
-            Boolean unique = true;
+        Boolean unique = true;
 
-            System.out.println("Client Handler Size: " + clientHandlers.size());
+        System.out.println("Client Handler Size: " + clientHandlers.size());
 
-            for (int i = 0; i < clientHandlers.size() - 1; i++) {
+        for (int i = 0; i < clientHandlers.size() - 1; i++) {
 
-                if (clientHandlers.get(i).registered){
-                    System.out.println("Clients joined: " + clientHandlers.get(i).getClientUsername());
-                
-                    if (clientHandlers.get(i).getClientUsername().equals(name)) {
-                        unique = false;
-                        System.out.println(unique);
-                    }
-                } else {
-                    unique = true;
+            if (clientHandlers.get(i).registered){
+                System.out.println("Clients joined: " + clientHandlers.get(i).getClientUsername());
+            
+                if (clientHandlers.get(i).getClientUsername().equals(name)) {
+                    unique = false;
+                    System.out.println(unique);
                 }
+            } else {
+                unique = true;
             }
-
-            try {
-                if (this.registered == true){
-                    dataOutputStream.writeInt(0);
-                    sendMsg("Error: You are already registered!");
-                } else {
-
-                    if (unique == true){
-                        this.clientUsername = name;
-                        this.registered = true;
-                        dataOutputStream.writeInt(1);
-                        sendMsg("Welcome " + name + "!");
-                    } else {
-                        dataOutputStream.writeInt(0);
-                        sendMsg("Error: Registration failed. Handle or alias already exists");
-                    }
-                }
-            } catch (IOException e){
-                e.printStackTrace();
-                sendMsg("Error in registration.");
-            }
-
-        } else {
-            dataOutputStream.writeInt(0);
-            sendMsg("Invalid registration. Please check your alias.");
-            return;
         }
-        
+
+        if (unique == true){
+            this.clientUsername = name;
+            this.registered = true;
+            // dataOutputStream.writeInt(1);
+            // sendMsg("Welcome " + name + "!");
+        } 
+    }
+
+    public void sendRegistrationStatus() throws IOException{
+        System.out.println("I entered!");
+        if (this.registered) {
+            System.out.println("ENTER REGISTERED");
+            dataOutputStream.writeInt(1);
+            dataOutputStream.flush();
+            System.out.println("SENT 1");
+        } else {
+            System.out.println("ENTER NON REGISTERED");
+            dataOutputStream.writeInt(0);
+            dataOutputStream.flush();
+            System.out.println("SENT 0");
+        }
     }
 
     public void getUserName () throws IOException {
@@ -196,6 +198,7 @@ public class ClientHandler implements Runnable {
     
                 // Send the file size to the client
                 long fileSize = Ffile.length();
+                System.out.println("FILE SIZE: " + fileSize);
                 dataOutputStream.writeLong(fileSize);
     
                 // Send the file content in chunks
@@ -289,18 +292,9 @@ public class ClientHandler implements Runnable {
     }
 
 
-    public void broadcastMessage(String messageToSend){
-        for (ClientHandler clientHandler: clientHandlers ){
-            try {
-                // if not you, send message to that client
-                if (!clientHandler.clientUsername.equals(clientUsername)){
-                    clientHandler.bufferedWriter.write(messageToSend);
-                    clientHandler.bufferedWriter.newLine();
-                    clientHandler.bufferedWriter.flush();
-            }
-        } catch (IOException e) {
-                closeEverything(socket, bufferedReader, bufferedWriter);
-            }
+    public void broadcastMessage(String messageToSend) throws IOException{
+        for (ClientHandler clientHandler: clientHandlers ){    
+            clientHandler.sendMsg(messageToSend);
         }
     }
 
@@ -320,12 +314,12 @@ public class ClientHandler implements Runnable {
     }
 
     // user disconnected
-    public void removeClientHandler() {
+    public void removeClientHandler() throws IOException {
         clientHandlers.remove(this);
         broadcastMessage("SERVER: " + clientUsername + "has left the chat!");
     }
 
-    public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter){
+    public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) throws IOException{
         removeClientHandler();
 
         try{
