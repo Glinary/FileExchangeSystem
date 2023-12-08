@@ -220,43 +220,35 @@ public class Controller implements ActionListener, DocumentListener, MessageCall
                         String name = null;
 
                         // send message /register to server using client
-                        client.sendMessage("/checkReg");
+                        client.sendMessage(gui.getUserInput());
                         registration = client.receiveRegistrationStatus();
+                    
 
-                        if (registration != 1){
+                        // display last command (differs on other commands because name must not show yet)
+                        if (registration == 1){
+                            gui.clientTerminalOut(client.getLastCmd()); // display last command without registered name
+                            gui.setUserInput("");
 
-                            client.sendMessage(gui.getUserInput());
-                            client.sendMessage("/checkReg");
-                            registration = client.receiveRegistrationStatus();
-                        
+                            client.listenForMessage();
 
-                            // display last command (differs on other commands because name must not show yet)
-                            if (registration == 1){
-                                gui.clientTerminalOut(client.getLastCmd()); // display last command without registered name
-                                gui.setUserInput("");
-
-                                // client.listenForMessage();
-
-                                // // Ensure that the listenForMessage thread completes before moving on
-                                // try {
-                                //     client.getListenThread().join();
-                                // } catch (InterruptedException e2) {
-                                //     e2.printStackTrace();
-                                // }
-
-                                // get name from server
-                                client.sendMessage("/pullName");
-                                name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
-                                System.out.println("Name: " + name);
-                        
-                                setRegistration(registration, name);
-                            } else {
-                                gui.clientTerminalOut("Alias is already taken.");
+                            // Ensure that the listenForMessage thread completes before moving on
+                            try {
+                                client.getListenThread().join();
+                            } catch (InterruptedException e2) {
+                                e2.printStackTrace();
                             }
+
+                            // get name from server
+                            client.sendMessage("/pullName");
+                            name = extractName("SERVER:", client.receiveUserName()); // remove "SERVER" from received name
+                            System.out.println("Name: " + name);
+                    
+                            setRegistration(registration, name);
 
                         // already registered/ taken alias
                         } else {
                             lastCmdDisplay();
+                            client.listenForMessage();
                             gui.setUserInput("");
                         }
                     } else {

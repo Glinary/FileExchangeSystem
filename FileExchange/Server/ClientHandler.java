@@ -71,7 +71,7 @@ public class ClientHandler implements Runnable {
            try {
                messageFromClient = dataInputStream.readUTF().trim();
                System.out.println("Received message from client: " + messageFromClient);
-               broadcastMessage("TRY");
+               //broadcastMessage("TRY");
 
                if (messageFromClient != null) {
                    if (messageFromClient.startsWith("/get")) {
@@ -148,7 +148,9 @@ public class ClientHandler implements Runnable {
             this.clientUsername = name;
             this.registered = true;
             // dataOutputStream.writeInt(1);
-            // sendMsg("Welcome " + name + "!");
+            sendMsg("Welcome " + name + "!");
+            broadcastMessage(name + " has joined");
+            
         } 
     }
 
