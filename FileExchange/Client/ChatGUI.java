@@ -22,7 +22,7 @@ public class ChatGUI extends JFrame {
     
      
         // set size of window
-        setSize(1300, 600);
+        setSize(480, 600);
 
         init();
 
@@ -95,18 +95,6 @@ public class ChatGUI extends JFrame {
 
             this.add(leftPanel, BorderLayout.WEST);
 
-
-
-        // ** MAIN RIGHT
-        JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new BorderLayout());
-        rightPanel.setBackground(Color.BLUE);
-
-        JLabel text = new JLabel("HEY THERE!");
-        rightPanel.add(text, BorderLayout.CENTER);
-
-
-        this.add(rightPanel, BorderLayout.CENTER);
 
     }
 
